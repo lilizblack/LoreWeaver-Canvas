@@ -26,7 +26,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
     if (user && projectId) {
       const fetchProject = async () => {
         try {
-          const docRef = doc(db, "projects", projectId);
+          const docRef = doc(db, "users", user.uid, "projects", projectId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists() && docSnap.data().ownerId === user.uid) {
             setProjectName(docSnap.data().name);

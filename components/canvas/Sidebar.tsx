@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useCanvasStore } from '@/store/useCanvasStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useUserStore } from '@/store/useUserStore';
 import {
   User, BookOpen, StickyNote, Image, Plus,
   Sun, Moon, Circle, Square, Star, ArrowRight,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Node } from 'reactflow';
+import { UsageBar } from './UsageBar';
 
 const NOTE_COLORS = [
   '#6d28d9', '#7c3aed', '#2563eb', '#0891b2',
@@ -50,6 +52,7 @@ const FONT_SIZES = [
 export function Sidebar() {
   const { addNode, canvasMode } = useCanvasStore();
   const { theme, toggleTheme, fontSize, setFontSize } = useThemeStore();
+  const { setSettingsOpen } = useUserStore();
   const [shapesOpen, setShapesOpen] = useState(false);
 
   const isDark = theme === 'dark';
@@ -263,7 +266,39 @@ export function Sidebar() {
             </motion.div>
           )}
         </AnimatePresence>
+        
+        <div style={{ paddingTop: 8 }}>
+          <UsageBar />
+        </div>
       </div>
+
+      <div style={{ height: 1, background: 'var(--border)' }} />
+
+      {/* ── Settings ── */}
+      <button
+        onClick={() => setSettingsOpen(true)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 12, padding: '10px',
+          borderRadius: 14, border: '1px solid var(--border)',
+          background: 'var(--bg-2)', cursor: 'pointer',
+          color: 'var(--fg)', fontSize: 13, fontWeight: 700,
+          transition: 'all 0.2s', width: '100%',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = '#7c3aed';
+          e.currentTarget.style.background = 'rgba(124,58,237,0.05)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'var(--border)';
+          e.currentTarget.style.background = 'var(--bg-2)';
+        }}
+      >
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <User style={{ width: 18, height: 18, color: '#7c3aed' }} />
+        </div>
+        Subscriptions & BYOH
+      </button>
     </div>
   );
 }

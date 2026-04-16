@@ -101,26 +101,19 @@ export const ChapterNode = memo(({ data, selected }: NodeProps) => {
           </div>
         )}
 
-        {/* Beats/Threads */}
-        {(data.beats || data.threads) && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-            {data.beats && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: 'var(--bg-2)', fontSize: 9, color: accentColor, fontWeight: 700, border: `1px solid var(--border)` }}>
-                <Sparkles style={{ width: 10, height: 10 }} /> Beats
-              </div>
-            )}
-            {data.threads && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: 'var(--bg-2)', fontSize: 9, color: '#fb7185', fontWeight: 700, border: `1px solid var(--border)` }}>
-                <AlertCircle style={{ width: 10, height: 10 }} /> Unresolved
-              </div>
-            )}
-            {data.worldBuilding && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: 'var(--bg-2)', fontSize: 9, color: '#06b6d4', fontWeight: 700, border: `1px solid var(--border)` }}>
-                <MapPin style={{ width: 10, height: 10 }} /> Lore
-              </div>
-            )}
-          </div>
-        )}
+        {/* Threads/World-building Icons */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {data.threads && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: 'var(--bg-2)', fontSize: 9, color: '#fb7185', fontWeight: 700, border: `1px solid var(--border)` }}>
+              <AlertCircle style={{ width: 10, height: 10 }} /> Unresolved
+            </div>
+          )}
+          {data.worldBuilding && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: 'var(--bg-2)', fontSize: 9, color: '#06b6d4', fontWeight: 700, border: `1px solid var(--border)` }}>
+              <MapPin style={{ width: 10, height: 10 }} /> Lore
+            </div>
+          )}
+        </div>
       </div>
 
       <Handle type="source" position={Position.Right} id="right-source" className="!w-3 !h-3 !border-2 !border-zinc-900" style={{ background: accentColor }} />

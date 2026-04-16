@@ -28,6 +28,8 @@ interface CanvasState {
 
   // Cross-canvas semantic links (separate from visual ReactFlow edges)
   links: LoreLink[];
+  threadEdges: Edge[];
+  setThreadEdges: (edges: Edge[]) => void;
 
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -60,6 +62,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   loreNodes: [],
   loreEdges: [],
   links: [],
+  threadEdges: [],
   hideThreads: false,
   hiddenTypes: [],
 
@@ -85,6 +88,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     });
   },
   setLinks: (links) => set({ links }),
+  setThreadEdges: (edges) => set({ threadEdges: edges }),
   setHideThreads: (hide) => set({ hideThreads: hide }),
 
   setCanvasMode: (mode) => {
@@ -238,4 +242,28 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       selectedNodeId: null,
     });
   },
+
+  importState: (state: any) => {
+    const mode = get().canvasMode;
+    set({
+      mainNodes: state.mainNodes || [],
+      mainEdges: state.mainEdges || [],
+      loreNodes: state.loreNodes || [],
+      loreEdges: state.loreEdges || [],
+      links:     state.links || [],
+      nodes:     mode === 'main' ? (state.mainNodes || []) : (state.loreNodes || []),
+      edges:     mode === 'main' ? (state.mainEdges || []) : (state.loreEdges || []),
+    });
+  },
+
+  reset: () => set({
+    nodes: [],
+    edges: [],
+    mainNodes: [],
+    mainEdges: [],
+    loreNodes: [],
+    loreEdges: [],
+    links: [],
+    selectedNodeId: null
+  }),
 }));

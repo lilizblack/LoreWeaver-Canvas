@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Book, Plus, Settings, LogOut, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/useUserStore";
 
 interface Project {
   id: string;
@@ -34,8 +35,7 @@ export default function Dashboard() {
 
     console.log("Setting up Firestore subscription for user:", user.uid);
     const q = query(
-      collection(db, "projects"), 
-      where("ownerId", "==", user.uid)
+      collection(db, "users", user.uid, "projects")
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -60,7 +60,7 @@ export default function Dashboard() {
 
     setIsCreating(true);
     try {
-      const docRef = await addDoc(collection(db, "projects"), {
+      const docRef = await addDoc(collection(db, "users", user.uid, "projects"), {
         name: newProjectName,
         ownerId: user.uid,
         createdAt: serverTimestamp(),
@@ -107,6 +107,13 @@ export default function Dashboard() {
               <span className="text-sm font-medium text-zinc-200">{user?.displayName}</span>
               <span className="text-xs text-zinc-500">{user?.email}</span>
             </div>
+            <button 
+              onClick={() => useUserStore.getState().setSettingsOpen(true)}
+              className="p-2 hover:bg-white/5 rounded-full transition-colors group"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5 text-zinc-500 group-hover:text-purple-400" />
+            </button>
             <button 
               onClick={() => logout()}
               className="p-2 hover:bg-white/5 rounded-full transition-colors group"

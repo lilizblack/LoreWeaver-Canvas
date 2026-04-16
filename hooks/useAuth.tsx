@@ -1,20 +1,37 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { onAuthStateChanged, User, signInWithPopup, signOut } from "firebase/auth";
+import { 
+  onAuthStateChanged, 
+  User, 
+  signInWithPopup, 
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail
+} from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { doc, setDoc } from 'firebase/firestore';
+import { db as masterDb } from '@/lib/firebase';
+import { useUserSync } from './useUserSync';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: () => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  registerWithEmail: (email: string, pass: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: async () => {},
+  loginWithGoogle: async () => {},
+  loginWithEmail: async () => {},
+  registerWithEmail: async () => {},
+  resetPassword: async () => {},
   logout: async () => {},
 });
 
@@ -22,20 +39,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Restore tier + BYOH config from Master Firestore after login
+  useUserSync();
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
+
+      // Ensure user document exists in Master Firestore for new sign-ups
+      if (firebaseUser) {
+        try {
+          const userRef = doc(masterDb, 'users', firebaseUser.uid);
+          await setDoc(userRef, {
+            email: firebaseUser.email,
+            createdAt: Date.now(),
+          }, { merge: true });
+        } catch (e) {
+          console.warn('[Auth] Could not ensure user doc exists:', e);
+        }
+      }
     });
 
     return () => unsubscribe();
   }, []);
 
-  const login = async () => {
+  const loginWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Google Login failed:", error);
+      throw error;
+    }
+  };
+
+  const loginWithEmail = async (email: string, pass: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error("Email Login failed:", error);
+      throw error;
+    }
+  };
+
+  const registerWithEmail = async (email: string, pass: string) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error("Password reset failed:", error);
+      throw error;
     }
   };
 
@@ -48,7 +109,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      loginWithGoogle, 
+      loginWithEmail, 
+      registerWithEmail, 
+      resetPassword, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );

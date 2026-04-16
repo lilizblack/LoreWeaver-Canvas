@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/hooks/useAuth";
+import { SettingsModal } from "@/components/SettingsModal";
 
 export default function RootLayout({
   children,
@@ -39,6 +40,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          <SettingsModal />
         </AuthProvider>
       </body>
     </html>

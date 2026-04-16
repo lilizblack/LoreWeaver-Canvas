@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 
-export interface CharacterRelationship {
-  characterId: string;
-  type: string; // e.g. "Sister", "Rival", "Mentor", "Love Interest"
+export interface CharacterThread {
+  targetCharacterID: string;
+  hexColor: string;
+  relationType?: string; // Optional: keep for legacy/extra detail
 }
 
 export interface Character {
@@ -22,7 +23,7 @@ export interface Character {
     species: string[];
     allegiance: string[];
   };
-  relationships?: CharacterRelationship[];
+  threads?: CharacterThread[];
   metadata: {
     createdAt: number;
     updatedAt: number;
@@ -32,10 +33,8 @@ export interface Character {
 // ── Chapter library record — mirrors a chapter node's data ──────────────────
 export interface ChapterRecord {
   id: string;
-  title?: string;
   name?: string;
   summary?: string;
-  beats?: string;
   threads?: string;
   worldBuilding?: string;
   wordCount?: string;
@@ -142,6 +141,33 @@ interface WorldStore {
   deleteItem: (id: string) => void;
 }
 
+const countWords = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0;
+const limitWords = (s: string, max: number) => {
+  const words = s.trim().split(/\s+/);
+  if (words.length <= max) return s;
+  return words.slice(0, max).join(' ');
+};
+const limitChars = (s: string, max: number) => s.slice(0, max);
+
+const constrain = (updates: any, isChapterSummary: boolean = false) => {
+  const constrained = { ...updates };
+  for (const key in constrained) {
+    if (typeof constrained[key] === 'string') {
+      if (isChapterSummary && key === 'summary') {
+        if (countWords(constrained[key]) > 500) {
+          constrained[key] = limitWords(constrained[key], 500);
+        }
+      } else {
+        // Apply 200 word limit to everything else 
+        if (countWords(constrained[key]) > 200) {
+          constrained[key] = limitWords(constrained[key], 200);
+        }
+      }
+    }
+  }
+  return constrained;
+};
+
 export const useWorldStore = create<WorldStore>((set) => ({
   characters: {},
   chapters: {},
@@ -157,12 +183,14 @@ export const useWorldStore = create<WorldStore>((set) => ({
   updateCharacter: (id, updates) => set((state) => {
     const existing = state.characters[id];
     const now = Date.now();
+    const constrained = constrain(updates);
+    
     return {
       characters: {
         ...state.characters,
         [id]: {
           ...existing,
-          ...updates,
+          ...constrained,
           metadata: {
             createdAt: existing?.metadata?.createdAt ?? now,
             updatedAt: now,
@@ -189,12 +217,14 @@ export const useWorldStore = create<WorldStore>((set) => ({
   upsertChapter: (id, updates) => set((state) => {
     const existing = state.chapters[id];
     const now = Date.now();
+    const constrained = constrain(updates, true);
+    
     return {
       chapters: {
         ...state.chapters,
         [id]: {
           ...existing,
-          ...updates,
+          ...constrained,
           id,
           createdAt: existing?.createdAt ?? now,
           updatedAt: now,
@@ -215,12 +245,13 @@ export const useWorldStore = create<WorldStore>((set) => ({
   upsertNote: (id, updates) => set((state) => {
     const existing = state.notes[id];
     const now = Date.now();
+    const constrained = constrain(updates);
     return {
       notes: {
         ...state.notes,
         [id]: {
           ...existing,
-          ...updates,
+          ...constrained,
           id,
           createdAt: existing?.createdAt ?? now,
           updatedAt: now,
@@ -241,7 +272,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   upsertPlace: (id, updates) => set((state) => {
     const existing = state.places[id];
     const now = Date.now();
-    return { places: { ...state.places, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+    const constrained = constrain(updates);
+    return { places: { ...state.places, [id]: { ...existing, ...constrained, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
   }),
 
   deletePlace: (id) => set((state) => {
@@ -254,7 +286,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   upsertEvent: (id, updates) => set((state) => {
     const existing = state.events[id];
     const now = Date.now();
-    return { events: { ...state.events, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+    const constrained = constrain(updates);
+    return { events: { ...state.events, [id]: { ...existing, ...constrained, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
   }),
 
   deleteEvent: (id) => set((state) => {
@@ -267,7 +300,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   upsertConcept: (id, updates) => set((state) => {
     const existing = state.concepts[id];
     const now = Date.now();
-    return { concepts: { ...state.concepts, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+    const constrained = constrain(updates);
+    return { concepts: { ...state.concepts, [id]: { ...existing, ...constrained, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
   }),
 
   deleteConcept: (id) => set((state) => {
@@ -280,7 +314,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   upsertItem: (id, updates) => set((state) => {
     const existing = state.items[id];
     const now = Date.now();
-    return { items: { ...state.items, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+    const constrained = constrain(updates);
+    return { items: { ...state.items, [id]: { ...existing, ...constrained, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
   }),
 
   deleteItem: (id) => set((state) => {

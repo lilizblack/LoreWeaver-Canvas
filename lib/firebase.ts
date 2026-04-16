@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, EmailAuthProvider } from "firebase/auth";
 import {
   getFirestore,
   initializeFirestore,
@@ -23,8 +23,6 @@ const app = isNewApp ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
 // persistentLocalCache uses IndexedDB which only exists in the browser.
-// During Next.js server-side prerendering (SSR/SSG) we fall back to the
-// default in-memory Firestore cache to avoid a build crash.
 const isClient = typeof window !== "undefined";
 
 const db = isNewApp && isClient
@@ -37,5 +35,6 @@ const db = isNewApp && isClient
 
 const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
+const emailProvider = new EmailAuthProvider();
 
-export { auth, db, storage, googleProvider };
+export { app, auth, db, storage, googleProvider, emailProvider };
