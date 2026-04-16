@@ -146,6 +146,10 @@ export const useWorldStore = create<WorldStore>((set) => ({
   characters: {},
   chapters: {},
   notes: {},
+  places: {},
+  events: {},
+  concepts: {},
+  items: {},
   activeCharacterId: null,
 
   setCharacters: (characters) => set({ characters }),
@@ -229,5 +233,57 @@ export const useWorldStore = create<WorldStore>((set) => ({
     const next = { ...state.notes };
     delete next[id];
     return { notes: next };
+  }),
+
+  // ── Places library ───────────────────────────────────────────────────────
+  setPlaces: (places) => set({ places }),
+
+  upsertPlace: (id, updates) => set((state) => {
+    const existing = state.places[id];
+    const now = Date.now();
+    return { places: { ...state.places, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+  }),
+
+  deletePlace: (id) => set((state) => {
+    const next = { ...state.places }; delete next[id]; return { places: next };
+  }),
+
+  // ── Events library ───────────────────────────────────────────────────────
+  setEvents: (events) => set({ events }),
+
+  upsertEvent: (id, updates) => set((state) => {
+    const existing = state.events[id];
+    const now = Date.now();
+    return { events: { ...state.events, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+  }),
+
+  deleteEvent: (id) => set((state) => {
+    const next = { ...state.events }; delete next[id]; return { events: next };
+  }),
+
+  // ── Concepts library ─────────────────────────────────────────────────────
+  setConcepts: (concepts) => set({ concepts }),
+
+  upsertConcept: (id, updates) => set((state) => {
+    const existing = state.concepts[id];
+    const now = Date.now();
+    return { concepts: { ...state.concepts, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+  }),
+
+  deleteConcept: (id) => set((state) => {
+    const next = { ...state.concepts }; delete next[id]; return { concepts: next };
+  }),
+
+  // ── Items library ────────────────────────────────────────────────────────
+  setItems: (items) => set({ items }),
+
+  upsertItem: (id, updates) => set((state) => {
+    const existing = state.items[id];
+    const now = Date.now();
+    return { items: { ...state.items, [id]: { ...existing, ...updates, id, createdAt: existing?.createdAt ?? now, updatedAt: now } } };
+  }),
+
+  deleteItem: (id) => set((state) => {
+    const next = { ...state.items }; delete next[id]; return { items: next };
   }),
 }));

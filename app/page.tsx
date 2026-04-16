@@ -12,7 +12,8 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (user && !loading) {
-      router.push("/dashboard");
+      const onboarded = localStorage.getItem("lw-onboarded");
+      router.push(onboarded ? "/dashboard" : "/onboarding");
     }
   }, [user, loading, router]);
 
