@@ -19,7 +19,7 @@ export const CharacterNode = memo(({ data, selected }: NodeProps) => {
   const roleColor     = getRoleColor(characterType);
   const imageUrl      = character?.imageUrl      ?? data.imageUrl;
   const sex           = character?.sex           ?? data.sex;
-  const relationships = character?.relationships ?? data.relationships ?? [];
+  const relationships = (character as any)?.relationships ?? data.relationships ?? [];
 
   return (
     <div className="relative" style={{ width: 260 }}>

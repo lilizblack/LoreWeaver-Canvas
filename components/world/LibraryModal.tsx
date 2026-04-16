@@ -37,7 +37,7 @@ const KIND_META = {
 function getTitle(rec: ChapterRecord | NoteRecord, kind: Kind): string {
   if (kind === 'chapter') {
     const c = rec as ChapterRecord;
-    return c.title || c.name || 'Untitled Chapter';
+    return (c as any).title || c.name || 'Untitled Chapter';
   }
   const n = rec as NoteRecord;
   return n.label || 'Untitled Note';
@@ -46,7 +46,7 @@ function getTitle(rec: ChapterRecord | NoteRecord, kind: Kind): string {
 function getPreview(rec: ChapterRecord | NoteRecord, kind: Kind): string {
   if (kind === 'chapter') {
     const c = rec as ChapterRecord;
-    return c.summary || c.beats || c.worldBuilding || '';
+    return c.summary || (c as any).beats || (c as any).worldBuilding || '';
   }
   const n = rec as NoteRecord;
   return (n.content || '').replace(/<[^>]+>/g, ' ').trim();
@@ -106,16 +106,16 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
         : { width: 220, height: 140 },
       data: kind === 'chapter'
         ? {
-            title: (rec as ChapterRecord).title || (rec as ChapterRecord).name || 'Recovered Chapter',
-            name:  (rec as ChapterRecord).name || (rec as ChapterRecord).title,
-            summary: (rec as ChapterRecord).summary || '',
-            beats:   (rec as ChapterRecord).beats || '',
-            threads: (rec as ChapterRecord).threads || '',
-            worldBuilding: (rec as ChapterRecord).worldBuilding || '',
-            wordCount:     (rec as ChapterRecord).wordCount || '',
-            chapterNumber: (rec as ChapterRecord).chapterNumber || '',
-            noteColor:     (rec as ChapterRecord).noteColor || '#f59e0b',
-            appearances:   (rec as ChapterRecord).appearances || [],
+            title: (rec as any).title || (rec as any).name || 'Recovered Chapter',
+            name:  (rec as any).name || (rec as any).title,
+            summary: (rec as any).summary || '',
+            beats:   (rec as any).beats || '',
+            threads: (rec as any).threads || '',
+            worldBuilding: (rec as any).worldBuilding || '',
+            wordCount:     (rec as any).wordCount || '',
+            chapterNumber: (rec as any).chapterNumber || '',
+            noteColor:     (rec as any).noteColor || '#f59e0b',
+            appearances:   (rec as any).appearances || [],
           }
         : {
             label:   (rec as NoteRecord).label || '',
@@ -136,7 +136,7 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
     if (kind === 'chapter') {
       upsertChapter(id, {
         id,
-        title: 'New Chapter Note',
+        name: 'New Chapter Note',
         summary: '',
         noteColor: '#f59e0b',
         createdAt: now, updatedAt: now,
@@ -152,7 +152,7 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
     }
     // Drop it on the canvas too
     const rec = kind === 'chapter'
-      ? { id, title: 'New Chapter Note', noteColor: '#f59e0b' } as ChapterRecord
+      ? { id, name: 'New Chapter Note', noteColor: '#f59e0b' } as ChapterRecord
       : { id, label: 'New Note', noteColor: '#6d28d9', content: '' } as NoteRecord;
     restoreToCanvas(rec);
   };
@@ -269,7 +269,7 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
                           <p className="text-xs line-clamp-2" style={{ color: 'var(--fg-3)' }}>{preview}</p>
                         )}
                         {kind === 'chapter' && (() => {
-                          const c = rec as ChapterRecord;
+                          const c = rec as any;
                           const chips: string[] = [];
                           if (c.chapterNumber) chips.push(`Ch. ${c.chapterNumber}`);
                           if (c.wordCount)     chips.push(`${Number(c.wordCount).toLocaleString()} words`);

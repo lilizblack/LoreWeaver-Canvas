@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCanvasStore } from '@/store/useCanvasStore';
+import { useWorldStore } from '@/store/useWorldStore';
 import {
   X, User, BookOpen, StickyNote, MapPin,
   Calendar, Scroll, Gem, Trash2,
@@ -30,7 +31,11 @@ export function GrimoirePanel() {
     deleteNode, 
     updateNodeZIndex,
     addNode,
-    setCanvasMode
+    setCanvasMode,
+    nodes,
+    selectedNodeId,
+    setSelectedNodeId,
+    updateNodeData
   } = useCanvasStore();
 
   const world = useWorldStore();
@@ -101,7 +106,7 @@ export function GrimoirePanel() {
   };
 
   const handleRestore = () => {
-    if (!selectedNode || !selectedNode.isIsolated) return;
+    if (!selectedNode || !('isIsolated' in selectedNode) || !(selectedNode as any).isIsolated) return;
     
     // Determine target canvas
     const mainTypes = ['chapter', 'note', 'character'];

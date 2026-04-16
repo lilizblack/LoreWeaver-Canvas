@@ -166,7 +166,7 @@ export function SettingsModal() {
           const projectId = typeof window !== 'undefined'
             ? (window.location.pathname.split('/canvas/')?.[1] ?? 'default-project')
             : 'default-project';
-          const result = await migrateDataToByoh(user.uid, projectId, finalConfig);
+          const result = await migrateDataToByoh(user.uid, projectId, finalConfig!);
           setIsMigrating(false);
           if (!result.migrated) {
             setError(`Migration warning: ${result.error ?? 'Could not copy data to your Firebase. Check your config.'}`);
@@ -194,7 +194,7 @@ export function SettingsModal() {
 
       // Commit to local store
       setTier(pendingTier);
-      setCustomFirebaseConfig(finalConfig);
+      setCustomFirebaseConfig(finalConfig as any);
 
       setSuccess(true);
       setTimeout(() => {

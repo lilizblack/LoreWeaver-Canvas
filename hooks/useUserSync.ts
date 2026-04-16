@@ -47,7 +47,7 @@ export function useUserSync() {
         if (data.tier === 'byoh' && data.encryptedByohConfig) {
           const config = await decryptConfig(data.encryptedByohConfig, user!.uid);
           if (config && !cancelled) {
-            setCustomFirebaseConfig(config);
+            setCustomFirebaseConfig(config as any);
             console.log('[UserSync] BYOH config restored from Master Firestore.');
           }
         }

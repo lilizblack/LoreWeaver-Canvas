@@ -42,7 +42,7 @@ export function NoteDetails({ nodeId, data, updateNodeData }: NoteDetailsProps) 
       </div>
 
       <div className="w-full h-px" style={{ background: 'var(--border)' }} />
-      <ReferencedInSection nodeId={nodeId} label="Linked Chapters" filterTypes={['chapter', 'note']} />
+      <ReferencedInSection nodeId={nodeId} label="Linked Chapters" filterTypes={['chapter', 'note']} relationType="referenced_in" />
     </>
   );
 }
