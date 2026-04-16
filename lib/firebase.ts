@@ -1,6 +1,11 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -12,10 +17,25 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Guard against double-init during Next.js HMR
+const isNewApp = getApps().length === 0;
+const app = isNewApp ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const db = getFirestore(app);
+
+// Firestore with IndexedDB offline cache:
+//  - Data loads instantly from cache on reload (no blank flash)
+//  - Writes queue locally and flush automatically when reconnected
+//  - Multiple tabs stay in sync via persistentMultipleTabManager
+// initializeFirestore must only be called once, so fall back to getFirestore
+// on HMR re-runs when the app is already initialized.
+const db = isNewApp
+  ? initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    })
+  : getFirestore(app);
+
 const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
