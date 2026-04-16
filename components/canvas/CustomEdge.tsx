@@ -116,20 +116,21 @@ export function CustomEdge({
           strokeWidth: selected ? 4 : (isRelationshipEdge ? 3 : 2),
           stroke: selected ? '#a855f7' : edgeColor,
           strokeDasharray: isRelationshipEdge ? '0' : (style.strokeDasharray as any),
-          transition: isDragging ? 'none' : 'stroke 0.2s',
+          transition: isDragging ? 'none' : 'stroke 0.2s, stroke-width 0.2s',
+          opacity: selected ? 1 : 0.7,
         }}
         fill="none"
-        className="react-flow__edge-path"
+        className="react-flow__edge-path transition-all hover:opacity-100 hover:stroke-zinc-300"
         d={edgePath}
         markerEnd={markerEnd}
       />
 
-      {/* Interaction path */}
+      {/* Interaction path - much wider to make selection easy */}
       <path
         d={edgePath}
         fill="none"
         strokeOpacity={0}
-        strokeWidth={20}
+        strokeWidth={30}
         className="react-flow__edge-interaction cursor-pointer"
       />
 
@@ -146,23 +147,23 @@ export function CustomEdge({
           >
             <div 
               onMouseDown={onHandleMouseDown}
-              className={`w-6 h-6 rounded-full border-2 bg-zinc-900 flex items-center justify-center cursor-move shadow-xl transition-transform active:scale-125 ${isDragging ? 'border-purple-500 scale-125' : 'border-zinc-700 hover:border-purple-400'}`}
+              className={`w-8 h-8 rounded-full border-2 bg-zinc-950 flex items-center justify-center cursor-move shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all active:scale-110 ${isDragging ? 'border-purple-500 bg-purple-950/20' : 'border-purple-500/50 hover:border-purple-400 hover:scale-105'}`}
             >
-              <GripVertical className="w-3 h-3 text-zinc-400" />
+              <GripVertical className="w-4 h-4 text-purple-400" />
             </div>
             
             {/* Action buttons (Delete) anchored to handle */}
             {!isDragging && (
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
+              <div className="absolute top-10 left-1/2 -translate-x-1/2 flex items-center gap-2">
                  {!isRelationshipEdge && (
                     <button
-                      className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg border border-red-400 transition-colors cursor-pointer"
+                      className="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-full p-2 shadow-lg border border-red-500/30 transition-all cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeEdge();
                       }}
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                  )}
                  {controlPoint && (

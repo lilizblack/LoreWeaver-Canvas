@@ -127,11 +127,14 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
 
   onEdgesChange: (changes) => {
-    const newEdges = applyEdgeChanges(changes, get().edges);
-    const mode = get().canvasMode;
+    const { edges, threadEdges, canvasMode } = get();
+    const newEdges = applyEdgeChanges(changes, edges);
+    const newThreadEdges = applyEdgeChanges(changes, threadEdges);
+    
     set({
       edges: newEdges,
-      ...(mode === 'main' ? { mainEdges: newEdges } : { loreEdges: newEdges })
+      threadEdges: newThreadEdges,
+      ...(canvasMode === 'main' ? { mainEdges: newEdges } : { loreEdges: newEdges })
     });
   },
 

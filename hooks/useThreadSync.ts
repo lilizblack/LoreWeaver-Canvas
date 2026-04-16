@@ -18,6 +18,7 @@ export function useThreadSync() {
 
     const edges: Edge[] = [];
     const charList = Object.values(characters);
+    const currentThreadEdges = useCanvasStore.getState().threadEdges;
     
     // For each character in the world
     charList.forEach((char) => {
@@ -25,9 +26,6 @@ export function useThreadSync() {
       const sourceNode = nodes.find(n => n.data?.characterId === char.id);
       if (!sourceNode) return;
 
-      // AGENTS.md says: character threads are stored as Link objects in relationships array
-      // Character Threads: Store relationships as Link objects: { sourceID, targetID, colorCode }.
-      // Note: in useWorldStore, the type is 'threads'.
       const threads = char.threads || [];
 
       threads.forEach((thread, index) => {
@@ -37,17 +35,22 @@ export function useThreadSync() {
 
         // Create a unique ID for this visual thread
         const edgeId = `thread-${char.id}-${thread.targetCharacterID}-${index}`;
+        
+        // Preserve selection state
+        const wasSelected = currentThreadEdges.find(e => e.id === edgeId)?.selected;
 
         edges.push({
           id: edgeId,
+          type: 'custom',
           source: sourceNode.id,
           target: targetNode.id,
           label: thread.relationType || '',
           animated: true,
+          selected: wasSelected,
           style: { 
             stroke: thread.hexColor || '#ff00ff', 
-            strokeWidth: 3,
-            opacity: 0.7
+            strokeWidth: wasSelected ? 4 : 3,
+            opacity: wasSelected ? 1 : 0.7
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
