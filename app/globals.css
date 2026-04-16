@@ -4,51 +4,100 @@
   --color-background: oklch(0.12 0.02 280);
   --color-foreground: oklch(0.98 0.01 200);
   --color-primary: oklch(0.45 0.15 285);
-  --color-accent: oklch(0.7 0.15 45); /* Goldish accent */
+  --color-accent: oklch(0.7 0.15 45);
   --color-card: oklch(0.16 0.03 285);
   --color-card-foreground: oklch(0.95 0.01 200);
   --color-border: oklch(0.25 0.04 285);
 }
 
+/* ── Dark theme (default) ─────────────────────────── */
 :root {
-  --background: #0a0a0c;
-  --foreground: #fcfcfd;
-  --primary: #6d28d9;
-  --accent: #d4af37;
-  --card: #18181b;
-  --border: #27272a;
+  --bg:          #0a0a0c;
+  --bg-2:        #18181b;
+  --bg-3:        #27272a;
+  --fg:          #fcfcfd;
+  --fg-2:        #a1a1aa;
+  --fg-3:        #71717a;
+  --border:      rgba(255,255,255,0.06);
+  --border-2:    rgba(255,255,255,0.12);
+  --card-bg:     rgba(24,24,27,0.85);
+  --glass:       rgba(24,24,27,0.7);
+  --primary:     #6d28d9;
+  --accent:      #d4af37;
+  --canvas-dot:  rgba(255,255,255,0.05);
+  --node-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+
+  /* font size scale */
+  --fs-xs:  10px;
+  --fs-sm:  12px;
+  --fs-base:14px;
+  --fs-lg:  16px;
+  --fs-xl:  18px;
 }
 
+/* ── Light theme ──────────────────────────────────── */
+.light {
+  --bg:          #f4f4f8;
+  --bg-2:        #ffffff;
+  --bg-3:        #e4e4e7;
+  --fg:          #09090b;
+  --fg-2:        #52525b;
+  --fg-3:        #a1a1aa;
+  --border:      rgba(0,0,0,0.08);
+  --border-2:    rgba(0,0,0,0.15);
+  --card-bg:     rgba(255,255,255,0.9);
+  --glass:       rgba(255,255,255,0.75);
+  --primary:     #7c3aed;
+  --accent:      #b45309;
+  --canvas-dot:  rgba(0,0,0,0.08);
+  --node-shadow: 0 10px 30px -10px rgba(0,0,0,0.15);
+}
+
+/* ── Font-size themes ─────────────────────────────── */
+.fs-sm  { --fs-xs:9px;  --fs-sm:11px; --fs-base:12px; --fs-lg:14px; --fs-xl:16px; }
+.fs-md  { --fs-xs:10px; --fs-sm:12px; --fs-base:14px; --fs-lg:16px; --fs-xl:18px; }
+.fs-lg  { --fs-xs:11px; --fs-sm:13px; --fs-base:16px; --fs-lg:18px; --fs-xl:22px; }
+.fs-xl  { --fs-xs:13px; --fs-sm:15px; --fs-base:18px; --fs-lg:22px; --fs-xl:26px; }
+
+/* ── Base ─────────────────────────────────────────── */
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--bg);
+  color: var(--fg);
   font-family: var(--font-outfit), system-ui, sans-serif;
   overflow: hidden;
 }
 
+/* ── Utilities ────────────────────────────────────── */
 .glass-panel {
-  background: rgba(24, 24, 27, 0.7);
+  background: var(--glass);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-2);
 }
 
 .canvas-grid {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1px);
   background-size: 30px 30px;
 }
 
-/* ReactFlow Customizations */
-.react-flow__pane {
-  background-color: var(--background);
-}
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar       { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 4px; }
+.scrollbar-hide::-webkit-scrollbar         { display: none; }
+.scrollbar-hide                            { -ms-overflow-style:none; scrollbar-width:none; }
+
+/* ── ReactFlow overrides ──────────────────────────── */
+.react-flow__pane       { background-color: transparent; }
+.react-flow__background { background-color: var(--bg); }
 
 .react-flow__handle {
-  width: 8px;
-  height: 8px;
+  width: 8px; height: 8px;
   background-color: var(--primary);
-  border: 2px solid var(--background);
+  border: 2px solid var(--bg);
 }
 
+.react-flow__edge-path,
 .react-flow__connection-path {
   stroke: var(--primary);
   stroke-width: 2;
@@ -56,13 +105,14 @@ body {
 
 .react-flow__node {
   border-radius: 12px;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--node-shadow);
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+/* Node resizer handles */
+.react-flow__resize-control.handle {
+  width: 10px !important; height: 10px !important;
+  border-radius: 50% !important;
+  background: var(--primary) !important;
+  border: 2px solid var(--bg) !important;
 }
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.react-flow__resize-control.line { border-color: var(--primary) !important; opacity: 0.4; }

@@ -1,72 +1,268 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCanvasStore } from '@/store/useCanvasStore';
-import { User, BookOpen, StickyNote, Image, Link2, Search, Plus } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useThemeStore } from '@/store/useThemeStore';
+import {
+  User, BookOpen, StickyNote, Image, Plus,
+  Sun, Moon, Circle, Square, Star, ArrowRight,
+  Triangle, ChevronDown, ChevronUp, Hexagon,
+  AArrowUp, AArrowDown, Type, Scroll, Gem, FileText
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Node } from 'reactflow';
+
+const NOTE_COLORS = [
+  '#6d28d9', '#7c3aed', '#2563eb', '#0891b2',
+  '#059669', '#65a30d', '#d97706', '#ea580c',
+  '#dc2626', '#db2777', '#ec4899', '#ffffff',
+];
+
+const SHAPES = [
+  { shape: 'circle',    label: 'Circle',    color: '#6d28d9' },
+  { shape: 'square',    label: 'Square',    color: '#2563eb' },
+  { shape: 'rectangle', label: 'Rectangle', color: '#0891b2' },
+  { shape: 'diamond',   label: 'Diamond',   color: '#db2777' },
+  { shape: 'star',      label: 'Star',      color: '#d97706' },
+  { shape: 'arrow',     label: 'Arrow',     color: '#059669' },
+  { shape: 'triangle',  label: 'Triangle',  color: '#dc2626' },
+  { shape: 'hexagon',   label: 'Hexagon',   color: '#7c3aed' },
+];
+
+const ShapeIconMap: Record<string, React.ReactNode> = {
+  circle:    <Circle    className="w-4 h-4" />,
+  square:    <Square    className="w-4 h-4" />,
+  rectangle: <Square    className="w-4 h-4 scale-x-150" />,
+  diamond:   <Square    className="w-4 h-4 rotate-45" />,
+  star:      <Star      className="w-4 h-4" />,
+  arrow:     <ArrowRight className="w-4 h-4" />,
+  triangle:  <Triangle  className="w-4 h-4" />,
+  hexagon:   <Hexagon   className="w-4 h-4" />,
+};
+
+const FONT_SIZES = [
+  { key: 'sm',  label: 'S' },
+  { key: 'md',  label: 'M' },
+  { key: 'lg',  label: 'L' },
+  { key: 'xl',  label: 'XL' },
+] as const;
 
 export function Sidebar() {
-  const { addNode } = useCanvasStore();
+  const { addNode, canvasMode } = useCanvasStore();
+  const { theme, toggleTheme, fontSize, setFontSize } = useThemeStore();
+  const [shapesOpen, setShapesOpen] = useState(false);
 
-  const onDragStart = (event: React.DragEvent, nodeType: string) => {
-    event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
+  const isDark = theme === 'dark';
+  const isLore = canvasMode === 'lore';
+
+  const onDragStart = (e: React.DragEvent, nodeType: string, extra?: any) => {
+    e.dataTransfer.setData('application/reactflow', nodeType);
+    if (extra) e.dataTransfer.setData('application/nodedata', JSON.stringify(extra));
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const templates = [
-    { type: 'character', label: 'Character', icon: User, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { type: 'chapter', label: 'Chapter Note', icon: BookOpen, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    { type: 'note', label: 'Notes', icon: StickyNote, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { type: 'image', label: 'Mood Board', icon: Image, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  const dropShape = (shape: string, color: string) => {
+    const id = `shape-${Date.now()}`;
+    const newNode: Node = {
+      id,
+      type: 'shape',
+      position: { x: 400, y: 300 },
+      style: { width: 100, height: 100 },
+      data: { shape, color, label: '', opacity: 0.9 },
+    };
+    addNode(newNode);
+  };
+
+  const mainTemplates = [
+    { type: 'character', label: 'Character',    icon: User,      color: isDark ? '#a78bfa' : '#6d28d9', bg: isDark ? 'rgba(109,40,217,0.12)' : 'rgba(109,40,217,0.15)' },
+    { type: 'chapter',   label: 'Chapter Note', icon: BookOpen,  color: isDark ? '#fbbf24' : '#b45309', bg: isDark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.15)' },
+    { type: 'note',      label: 'Notes',        icon: StickyNote,color: isDark ? '#34d399' : '#059669', bg: isDark ? 'rgba(5,150,105,0.12)' : 'rgba(5,150,105,0.15)'  },
+    { type: 'lore',      label: 'Text Block',   icon: FileText,  color: isDark ? '#c084fc' : '#9333ea', bg: isDark ? 'rgba(147,51,234,0.12)' : 'rgba(147,51,234,0.15)' },
+    { type: 'image',     label: 'Images',       icon: Image,     color: isDark ? '#60a5fa' : '#2563eb', bg: isDark ? 'rgba(37,99,235,0.12)' : 'rgba(37,99,235,0.15)'  },
   ];
 
+  const loreTemplates = [
+    { type: 'place',     label: 'Place',           icon: User,      color: isDark ? '#2dd4bf' : '#0891b2', bg: isDark ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.15)' },
+    { type: 'event',     label: 'Timeline Event',  icon: BookOpen,  color: isDark ? '#f472b6' : '#db2777', bg: isDark ? 'rgba(219,39,119,0.12)' : 'rgba(219,39,119,0.15)' },
+    { type: 'concept',   label: 'Concept / Term',  icon: Scroll,    color: isDark ? '#fbbf24' : '#d97706', bg: isDark ? 'rgba(217,119,6,0.12)'  : 'rgba(217,119,6,0.15)'  },
+    { type: 'item',      label: 'Item / Artifact',  icon: Gem,       color: isDark ? '#fb7185' : '#e11d48', bg: isDark ? 'rgba(225,29,72,0.12)'  : 'rgba(225,29,72,0.15)'  },
+    { type: 'note',      label: 'Notes',           icon: StickyNote,color: isDark ? '#34d399' : '#059669', bg: isDark ? 'rgba(5,150,105,0.12)' : 'rgba(5,150,105,0.15)'  },
+    { type: 'image',     label: 'Images',          icon: Image,     color: isDark ? '#60a5fa' : '#2563eb', bg: isDark ? 'rgba(37,99,235,0.12)' : 'rgba(37,99,235,0.15)'  },
+  ];
+
+  const templates = isLore ? loreTemplates : mainTemplates;
+
   return (
-    <div className="w-64 glass-panel rounded-2xl p-4 flex flex-col gap-6 shadow-2xl border-white/5">
-      <div className="flex items-center gap-2 px-2">
-        <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
-          <Plus className="w-5 h-5 text-white" />
+    <div style={{
+      width: 230,
+      background: 'var(--glass)',
+      backdropFilter: 'blur(16px)',
+      border: '1px solid var(--border-2)',
+      borderRadius: 20,
+      padding: 16,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16,
+      boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.5)' : '0 20px 50px rgba(0,0,0,0.08)',
+      color: 'var(--fg)',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 2px' }}>
+        <div style={{ 
+          width: 34, height: 34, borderRadius: 10, 
+          background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 12px rgba(124,58,237,0.3)'
+        }}>
+          <Plus style={{ width: 18, height: 18, color: 'white' }} />
         </div>
-        <h3 className="font-semibold text-zinc-100">Creation Tool</h3>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--fg)', letterSpacing: '-0.01em' }}>Creation Portal</span>
+          <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--fg-3)', textTransform: 'uppercase' }}>Design your world</span>
+        </div>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-        <input 
-          type="text" 
-          placeholder="Search lore..." 
-          className="w-full bg-black/20 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
-        />
+      <div style={{ height: 1, background: 'var(--border)' }} />
+
+      {/* ── Theme + Font Size ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
+            borderRadius: 12, border: '1px solid var(--border-2)',
+            background: 'var(--bg-2)', cursor: 'pointer', width: '100%',
+            color: 'var(--fg)', fontSize: 12, fontWeight: 700,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-2)'}
+        >
+          {isDark
+            ? <><Sun  style={{ width: 14, height: 14, color: '#fbbf24' }} /> Light Theme</>
+            : <><Moon style={{ width: 14, height: 14, color: '#6366f1' }} /> Dark Theme</>
+          }
+        </button>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 2px' }}>
+            <Type style={{ width: 10, height: 10, color: 'var(--fg-3)' }} />
+            <span style={{ fontSize: 9, color: 'var(--fg-3)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>UI Scale</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+            {FONT_SIZES.map(f => (
+              <button
+                key={f.key}
+                onClick={() => setFontSize(f.key)}
+                style={{
+                  padding: '6px 0', borderRadius: 10, border: '1px solid',
+                  borderColor: fontSize === f.key ? 'var(--primary)' : 'var(--border)',
+                  background: fontSize === f.key ? 'var(--primary)' : 'var(--bg-2)',
+                  color: fontSize === f.key ? 'white' : 'var(--fg-2)',
+                  fontSize: 10, fontWeight: 800, cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">Templates</p>
-        <div className="grid grid-cols-1 gap-2">
-          {templates.map((t) => (
-            <div
-              key={t.type}
-              draggable
-              onDragStart={(e) => onDragStart(e, t.type)}
-              className="flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all cursor-grab active:cursor-grabbing group"
-            >
-              <div className={`w-10 h-10 rounded-lg ${t.bg} ${t.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                <t.icon className="w-5 h-5" />
-              </div>
-              <span className="text-sm font-medium text-zinc-300 group-hover:text-white">{t.label}</span>
+      <div style={{ height: 1, background: 'var(--border)' }} />
+
+      {/* ── Node Templates ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <span style={{ fontSize: 9, color: 'var(--fg-3)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', padding: '0 2px' }}>Elements</span>
+        {templates.map((t) => (
+          <div
+            key={t.type}
+            draggable
+            onDragStart={(e) => onDragStart(e, t.type)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px',
+              borderRadius: 14, border: '1px solid var(--border)',
+              background: 'var(--bg-2)', cursor: 'grab',
+              color: 'var(--fg)', fontSize: 13, fontWeight: 600,
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = t.color + '40';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = `0 4px 12px ${t.color}20`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
+            }}
+          >
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <t.icon style={{ width: 18, height: 18, color: t.color }} />
             </div>
-          ))}
-        </div>
+            {t.label}
+          </div>
+        ))}
       </div>
 
-      <div className="mt-auto pt-6 border-t border-white/5">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
-          <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 overflow-hidden">
-            {/* Placeholder for user avatar */}
-          </div>
-          <div className="flex-1">
-            <p className="text-xs font-medium text-zinc-300">Author Name</p>
-            <p className="text-[10px] text-zinc-500">Chronicles of Midnight</p>
-          </div>
-        </div>
+      <div style={{ height: 1, background: 'var(--border)' }} />
+
+      {/* ── Shapes ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button
+          onClick={() => setShapesOpen(o => !o)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '4px 6px', background: 'var(--bg-2)', border: '1px solid var(--border)', 
+            borderRadius: 10, cursor: 'pointer', color: 'var(--fg-2)', width: '100%',
+          }}
+        >
+          <span style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>Geometric Primitives</span>
+          {shapesOpen ? <ChevronUp style={{ width: 12, height: 12 }} /> : <ChevronDown style={{ width: 12, height: 12 }} />}
+        </button>
+
+        <AnimatePresence>
+          {shapesOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, paddingTop: 4 }}>
+                {SHAPES.map(s => (
+                  <button
+                    key={s.shape}
+                    onClick={() => dropShape(s.shape, s.color)}
+                    draggable
+                    onDragStart={(e) => onDragStart(e, 'shape', { shape: s.shape, color: s.color })}
+                    title={s.label}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      gap: 4, padding: '10px 4px', borderRadius: 12,
+                      border: '1px solid var(--border)', background: 'var(--bg-2)',
+                      cursor: 'grab', color: s.color, transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.borderColor = s.color;
+                      e.currentTarget.style.background = s.color + '08';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.background = 'var(--bg-2)';
+                    }}
+                  >
+                    <span style={{ color: s.color }}>{ShapeIconMap[s.shape]}</span>
+                    <span style={{ fontSize: 8, color: 'var(--fg-3)', fontWeight: 800, textTransform: 'uppercase' }}>{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
