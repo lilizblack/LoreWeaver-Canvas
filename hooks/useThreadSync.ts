@@ -56,7 +56,9 @@ export function useThreadSync() {
           data: {
             type: 'thread',
             threadIndex: index,
-            characterId: char.id
+            characterId: char.id,
+            targetCharacterId: thread.targetCharacterID,
+            controlPoint: thread.controlPoint
           }
         });
       });

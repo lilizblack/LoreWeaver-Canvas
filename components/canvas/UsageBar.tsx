@@ -89,7 +89,7 @@ export function UsageBar() {
         <div className="flex justify-between items-end px-1">
           <div className="flex flex-col">
             <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Soul Weaver</span>
-            <span className="text-[11px] font-serif font-bold text-zinc-300">Portraits</span>
+            <span className="text-[11px] font-serif font-bold text-zinc-300">Characters</span>
           </div>
           <span className={`text-[10px] font-black tabular-nums ${charPercent >= 90 ? 'text-rose-400' : 'text-purple-300/80'}`}>
             {charCount}<span className="text-zinc-700 font-bold mx-1">/</span>{limits.spark.chars}

@@ -16,8 +16,8 @@ interface PlaceDetailsProps {
 }
 
 export function PlaceDetails({ nodeId, data, updateNodeData, isUploading, onImageUpload }: PlaceDetailsProps) {
-  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 200 });
-  const descField = useField(nodeId, data.description, 'description', updateNodeData, { maxWords: 200 });
+  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 300 });
+  const descField = useField(nodeId, data.description, 'description', updateNodeData, { maxWords: 300 });
 
   const handleSelect = (key: string, value: any) => {
     updateNodeData(nodeId, { [key]: value });

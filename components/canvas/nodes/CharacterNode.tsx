@@ -19,7 +19,7 @@ export const CharacterNode = memo(({ data, selected }: NodeProps) => {
   const roleColor     = getRoleColor(characterType);
   const imageUrl      = character?.imageUrl      ?? data.imageUrl;
   const sex           = character?.sex           ?? data.sex;
-  const relationships = (character as any)?.relationships ?? data.relationships ?? [];
+  const threads = (character as any)?.threads ?? data.threads ?? [];
 
   return (
     <div className="relative" style={{ width: 260 }}>
@@ -111,27 +111,23 @@ export const CharacterNode = memo(({ data, selected }: NodeProps) => {
             </div>
           </div>
 
-          {data.personality && (
-            <div className="rounded-lg p-2 border" style={{ background: 'var(--bg-2)', borderColor: 'var(--border)' }}>
-              <p style={{ fontSize: (data.fontSize || 16) - 8, color: 'var(--fg-3)' }} className="uppercase font-bold tracking-tighter mb-0.5">Personality</p>
-              <p className="line-clamp-2 leading-relaxed break-words" style={{ fontSize: (data.fontSize || 16) - 5, color: 'var(--fg-3)' }}>{data.personality}</p>
-            </div>
-          )}
-
-          {/* Relationships */}
-          {relationships.length > 0 && (
+          {/* Relationships - Moved up and fixed field mapping */}
+          {threads.length > 0 && (
             <div className="rounded-lg p-2 border" style={{ background: 'var(--bg-2)', borderColor: 'var(--border)' }}>
               <p style={{ fontSize: (data.fontSize || 16) - 8, color: 'var(--fg-3)' }} className="uppercase font-bold tracking-tighter mb-1.5 flex items-center gap-1">
                 <Heart style={{ width: 8, height: 8, color: data.color || 'var(--accent)' }} />
                 Relations
               </p>
               <div className="space-y-1">
-                {relationships.slice(0, 3).map((rel: any) => {
-                  const relChar = allCharacters[rel.characterId];
+                {threads.slice(0, 3).map((rel: any, idx: number) => {
+                  const targetId = rel.targetCharacterID || rel.characterId;
+                  const relChar = allCharacters[targetId];
                   if (!relChar) return null;
-                  const relColor = getRelationshipColor(rel.type);
+                  const relColor = rel.hexColor || getRelationshipColor(rel.type || rel.relationType);
+                  const relLabel = rel.relationType || rel.type || 'Connection';
+                  
                   return (
-                    <div key={rel.characterId} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div key={targetId + '-' + idx} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 14, height: 14, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `1.5px solid ${relColor}` }}>
                         {relChar.imageUrl
                           ? <img src={relChar.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -150,14 +146,21 @@ export const CharacterNode = memo(({ data, selected }: NodeProps) => {
                         fontWeight: 800,
                         textTransform: 'uppercase',
                         letterSpacing: '0.03em',
-                      }} className="truncate">{rel.type}</span>
+                      }} className="truncate">{relLabel}</span>
                     </div>
                   );
                 })}
-                {relationships.length > 3 && (
-                  <p style={{ fontSize: (data.fontSize || 16) - 7, color: 'var(--fg-3)' }}>+{relationships.length - 3} more</p>
+                {threads.length > 3 && (
+                  <p style={{ fontSize: (data.fontSize || 16) - 7, color: 'var(--fg-3)' }}>+{threads.length - 3} more</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {data.personality && (
+            <div className="rounded-lg p-2 border" style={{ background: 'var(--bg-2)', borderColor: 'var(--border)' }}>
+              <p style={{ fontSize: (data.fontSize || 16) - 8, color: 'var(--fg-3)' }} className="uppercase font-bold tracking-tighter mb-0.5">Personality</p>
+              <p className="line-clamp-2 leading-relaxed break-words" style={{ fontSize: (data.fontSize || 16) - 5, color: 'var(--fg-3)' }}>{data.personality}</p>
             </div>
           )}
         </div>

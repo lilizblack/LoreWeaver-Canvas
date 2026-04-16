@@ -14,8 +14,8 @@ interface ConceptDetailsProps {
 }
 
 export function ConceptDetails({ nodeId, data, updateNodeData }: ConceptDetailsProps) {
-  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 200 });
-  const detailsField = useField(nodeId, data.details, 'details', updateNodeData, { maxWords: 200 });
+  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 300 });
+  const detailsField = useField(nodeId, data.details, 'details', updateNodeData, { maxWords: 300 });
 
   const handleSelect = (key: string, value: any) => {
     updateNodeData(nodeId, { [key]: value });

@@ -59,7 +59,7 @@ export const ConceptNode = memo(({ data, selected, id }: NodeProps) => {
             fontSize: 9, color: accentColor + '90', fontWeight: 900,
             textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 1
           }}>
-            {data.category || 'Concept'}
+            {data.category || 'Lore Concept'}
           </div>
           <div style={{
             fontSize: (data.fontSize || 14) + 2,
@@ -80,10 +80,10 @@ export const ConceptNode = memo(({ data, selected, id }: NodeProps) => {
         color: 'var(--fg-2)',
         lineHeight: 1.6,
         display: '-webkit-box',
-        WebkitLineClamp: 6,
+        WebkitLineClamp: 10, // Increased to show more of those 300 words
         WebkitBoxOrient: 'vertical',
       }}>
-        {data.description || <span style={{ color: 'var(--fg-3)', fontStyle: 'italic' }}>No description yet...</span>}
+        {data.details || <span style={{ color: 'var(--fg-3)', fontStyle: 'italic' }}>No technical details yet...</span>}
       </div>
 
       <Handle type="source" position={Position.Right} id="right-source" className="!w-3 !h-3 !border-2 !border-zinc-900" style={{ background: accentColor }} />

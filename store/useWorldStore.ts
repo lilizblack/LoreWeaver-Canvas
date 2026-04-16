@@ -4,6 +4,7 @@ export interface CharacterThread {
   targetCharacterID: string;
   hexColor: string;
   relationType?: string; // Optional: keep for legacy/extra detail
+  controlPoint?: { x: number; y: number }; // Relative offset for the curve
 }
 
 export interface Character {
@@ -158,9 +159,9 @@ const constrain = (updates: any, isChapterSummary: boolean = false) => {
           constrained[key] = limitWords(constrained[key], 500);
         }
       } else {
-        // Apply 200 word limit to everything else 
-        if (countWords(constrained[key]) > 200) {
-          constrained[key] = limitWords(constrained[key], 200);
+        // Apply 300 word limit to everything else 
+        if (countWords(constrained[key]) > 300) {
+          constrained[key] = limitWords(constrained[key], 300);
         }
       }
     }
