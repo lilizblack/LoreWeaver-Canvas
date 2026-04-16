@@ -150,52 +150,56 @@ export default function OnboardingPage() {
             >
               <div className="text-center mb-8">
                 <p className="text-xs uppercase tracking-widest text-purple-400 mb-2">Step 1 of 2</p>
-                <h2 className="text-3xl font-serif mb-3">Where should we store your work?</h2>
-                <p className="text-zinc-400">Your projects, characters, and canvases need a home.</p>
+                <h2 className="text-3xl font-serif mb-3">One quick question</h2>
+                <p className="text-zinc-400">Do you already have a Firebase or Firestore account?</p>
               </div>
 
               <div className="grid gap-4">
-                {/* Cloud option */}
+                {/* Custom Firebase option — shown FIRST to nudge Firebase users */}
                 <button
-                  onClick={handleCloudChoice}
-                  className="group p-6 rounded-2xl bg-white/5 border border-purple-500/30 hover:border-purple-400/60 hover:bg-purple-500/10 transition-all text-left"
+                  onClick={handleCustomChoice}
+                  className="group p-6 rounded-2xl bg-white/5 border border-amber-500/40 hover:border-amber-400/70 hover:bg-amber-500/5 transition-all text-left"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform">
-                      <Cloud className="w-5 h-5 text-purple-400" />
+                    <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform">
+                      <Settings2 className="w-5 h-5 text-amber-400" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-white">LoreWeaver Cloud</h3>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20">Recommended</span>
+                        <h3 className="font-semibold text-white">Yes — I already have Firebase</h3>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/20">Preferred</span>
                       </div>
                       <p className="text-sm text-zinc-400 leading-relaxed">
-                        We handle everything. Your data is securely stored and backed up — no setup, no accounts, no config. Just start writing.
+                        If you already have a Firebase project with Firestore enabled, just paste your config keys. Takes 30 seconds — your data lives in <span className="text-zinc-300 font-medium">your own Google account</span>, completely under your control.
                       </p>
-                      <p className="text-xs text-purple-400 mt-2">Free · Instant · No technical knowledge needed</p>
+                      <p className="text-xs text-amber-400/80 mt-2">Your data · Your account · Zero dependency on us</p>
                     </div>
                   </div>
                 </button>
 
-                {/* Custom Firebase option */}
+                {/* Cloud option — fallback for non-Firebase users */}
                 <button
-                  onClick={handleCustomChoice}
-                  className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all text-left"
+                  onClick={handleCloudChoice}
+                  className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all text-left"
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-xl bg-zinc-700/50 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform">
-                      <Settings2 className="w-5 h-5 text-zinc-400" />
+                      <Cloud className="w-5 h-5 text-zinc-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white mb-1">Use My Own Firebase</h3>
+                      <h3 className="font-semibold text-white mb-1">No — set it up for me</h3>
                       <p className="text-sm text-zinc-400 leading-relaxed">
-                        Connect your own Firebase project. Your data stays entirely in your Google account — you have full control.
+                        Never used Firebase? No problem. We'll handle the setup automatically — nothing to install, nothing to configure. Just start writing. You can always switch to your own account later.
                       </p>
-                      <p className="text-xs text-zinc-500 mt-2">Requires a free Firebase account · For technical users</p>
+                      <p className="text-xs text-zinc-500 mt-2">No Firebase account needed · Fully automatic</p>
                     </div>
                   </div>
                 </button>
               </div>
+
+              <p className="text-center text-xs text-zinc-600 mt-5">
+                Not sure? If you use Google Cloud, Firebase Console, or have set up Firestore before — choose the first option.
+              </p>
             </motion.div>
           )}
 
