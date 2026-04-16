@@ -22,13 +22,12 @@ const isNewApp = getApps().length === 0;
 const app = isNewApp ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
-// Firestore with IndexedDB offline cache:
-//  - Data loads instantly from cache on reload (no blank flash)
-//  - Writes queue locally and flush automatically when reconnected
-//  - Multiple tabs stay in sync via persistentMultipleTabManager
-// initializeFirestore must only be called once, so fall back to getFirestore
-// on HMR re-runs when the app is already initialized.
-const db = isNewApp
+// persistentLocalCache uses IndexedDB which only exists in the browser.
+// During Next.js server-side prerendering (SSR/SSG) we fall back to the
+// default in-memory Firestore cache to avoid a build crash.
+const isClient = typeof window !== "undefined";
+
+const db = isNewApp && isClient
   ? initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager(),

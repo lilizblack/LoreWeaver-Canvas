@@ -14,7 +14,15 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "LoreWeaver | World-Building Canvas",
-  description: "A spatial workspace for fantasy and dark romance authors to craft their worlds.",
+  description: "LoreWeaver — a spatial canvas for fantasy and dark romance authors to craft their worlds, track characters, and weave storylines.",
+  applicationName: "LoreWeaver",
+  authors: [{ name: "LoreWeaver" }],
+  keywords: ["world building", "writing", "fantasy", "dark romance", "character tracking", "story canvas"],
+  openGraph: {
+    title: "LoreWeaver | World-Building Canvas",
+    description: "A spatial workspace for fantasy and dark romance authors to craft their worlds.",
+    type: "website",
+  },
 };
 
 import { AuthProvider } from "@/hooks/useAuth";
