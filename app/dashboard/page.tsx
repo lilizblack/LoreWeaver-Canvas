@@ -32,13 +32,6 @@ export default function Dashboard() {
       return;
     }
 
-    // First-time users haven't completed onboarding yet
-    const onboarded = localStorage.getItem("lw-onboarded");
-    if (!onboarded) {
-      router.push("/onboarding");
-      return;
-    }
-
     console.log("Setting up Firestore subscription for user:", user.uid);
     const q = query(
       collection(db, "projects"), 

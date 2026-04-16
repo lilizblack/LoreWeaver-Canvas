@@ -1,0 +1,652 @@
+{
+  "documents": [
+    {
+      "createTime": "2026-04-14T17:10:39.456237Z",
+      "fields": {
+        "characters": {
+          "arrayValue": {}
+        },
+        "createdAt": {
+          "timestampValue": "2026-04-14T17:10:39.415Z"
+        },
+        "edges": {
+          "arrayValue": {}
+        },
+        "name": {
+          "stringValue": "Saving Test"
+        },
+        "nodes": {
+          "arrayValue": {}
+        },
+        "ownerId": {
+          "stringValue": "uQlDI3H71ARouPP9eKhyqBV2kw73"
+        },
+        "updatedAt": {
+          "timestampValue": "2026-04-14T17:10:39.415Z"
+        }
+      },
+      "name": "projects/loreweaver-9f42a/databases/(default)/documents/projects/BSKMribTwDh7eEE9KOAg",
+      "updateTime": "2026-04-14T17:10:39.456237Z"
+    },
+    {
+      "createTime": "2026-04-14T17:14:28.613347Z",
+      "fields": {
+        "characters": {
+          "mapValue": {}
+        },
+        "createdAt": {
+          "timestampValue": "2026-04-14T17:14:28.498Z"
+        },
+        "edges": {
+          "arrayValue": {}
+        },
+        "loreEdges": {
+          "arrayValue": {}
+        },
+        "loreNodes": {
+          "arrayValue": {}
+        },
+        "mainEdges": {
+          "arrayValue": {}
+        },
+        "mainNodes": {
+          "arrayValue": {}
+        },
+        "name": {
+          "stringValue": "Persistence Test"
+        },
+        "nodes": {
+          "arrayValue": {}
+        },
+        "ownerId": {
+          "stringValue": "uQlDI3H71ARouPP9eKhyqBV2kw73"
+        },
+        "updatedAt": {
+          "integerValue": "1776191275584"
+        }
+      },
+      "name": "projects/loreweaver-9f42a/databases/(default)/documents/projects/BgYC4S1XAY525UFE0oIO",
+      "updateTime": "2026-04-14T18:27:55.864797Z"
+    },
+    {
+      "createTime": "2026-04-14T13:31:54.918334Z",
+      "fields": {
+        "characters": {
+          "mapValue": {
+            "fields": {
+              "character-1776190293740": {
+                "mapValue": {
+                  "fields": {
+                    "abilities": {
+                      "mapValue": {
+                        "fields": {
+                          "acquired": {
+                            "arrayValue": {}
+                          },
+                          "inherent": {
+                            "arrayValue": {}
+                          }
+                        }
+                      }
+                    },
+                    "age": {
+                      "stringValue": "32"
+                    },
+                    "aliases": {
+                      "arrayValue": {}
+                    },
+                    "appearance": {
+                      "stringValue": "black hair and icy blue eyes"
+                    },
+                    "color": {
+                      "stringValue": "#d97706"
+                    },
+                    "factions": {
+                      "mapValue": {
+                        "fields": {
+                          "allegiance": {
+                            "arrayValue": {}
+                          },
+                          "species": {
+                            "arrayValue": {}
+                          }
+                        }
+                      }
+                    },
+                    "fontSize": {
+                      "integerValue": "17"
+                    },
+                    "id": {
+                      "stringValue": "character-1776190293740"
+                    },
+                    "identities": {
+                      "arrayValue": {}
+                    },
+                    "imageUrl": {
+                      "stringValue": ""
+                    },
+                    "lore": {
+                      "stringValue": ""
+                    },
+                    "metadata": {
+                      "mapValue": {
+                        "fields": {
+                          "createdAt": {
+                            "integerValue": "1776190293741"
+                          },
+                          "updatedAt": {
+                            "integerValue": "1776190665238"
+                          }
+                        }
+                      }
+                    },
+                    "name": {
+                      "stringValue": "Alphonese Kingsman"
+                    },
+                    "origins": {
+                      "stringValue": ""
+                    },
+                    "personality": {
+                      "stringValue": ""
+                    }
+                  }
+                }
+              },
+              "character-1776191213075": {
+                "mapValue": {
+                  "fields": {
+                    "abilities": {
+                      "mapValue": {
+                        "fields": {
+                          "acquired": {
+                            "arrayValue": {}
+                          },
+                          "inherent": {
+                            "arrayValue": {}
+                          }
+                        }
+                      }
+                    },
+                    "age": {
+                      "stringValue": "32"
+                    },
+                    "aliases": {
+                      "arrayValue": {}
+                    },
+                    "factions": {
+                      "mapValue": {
+                        "fields": {
+                          "allegiance": {
+                            "arrayValue": {}
+                          },
+                          "species": {
+                            "arrayValue": {}
+                          }
+                        }
+                      }
+                    },
+                    "id": {
+                      "stringValue": "character-1776191213075"
+                    },
+                    "identities": {
+                      "arrayValue": {}
+                    },
+                    "imageUrl": {
+                      "stringValue": ""
+                    },
+                    "lore": {
+                      "stringValue": ""
+                    },
+                    "metadata": {
+                      "mapValue": {
+                        "fields": {
+                          "createdAt": {
+                            "integerValue": "1776191213075"
+                          },
+                          "updatedAt": {
+                            "integerValue": "1776191231038"
+                          }
+                        }
+                      }
+                    },
+                    "name": {
+                      "stringValue": "ALphonse Kingsman"
+                    },
+                    "origins": {
+                      "stringValue": ""
+                    }
+                  }
+                }
+              },
+              "character-1776191867333": {
+                "mapValue": {
+                  "fields": {
+                    "abilities": {
+                      "mapValue": {
+                        "fields": {
+                          "acquired": {
+                            "arrayValue": {}
+                          },
+                          "inherent": {
+                            "arrayValue": {}
+                          }
+                        }
+                      }
+                    },
+                    "age": {
+                      "stringValue": "32"
+                    },
+                    "aliases": {
+                      "arrayValue": {}
+                    },
+                    "factions": {
+                      "mapValue": {
+                        "fields": {
+                          "allegiance": {
+                            "arrayValue": {}
+                          },
+                          "species": {
+                            "arrayValue": {}
+                          }
+                        }
+                      }
+                    },
+                    "id": {
+                      "stringValue": "character-1776191867333"
+                    },
+                    "identities": {
+                      "arrayValue": {}
+                    },
+                    "imageUrl": {
+                      "stringValue": ""
+                    },
+                    "lore": {
+                      "stringValue": ""
+                    },
+                    "metadata": {
+                      "mapValue": {
+                        "fields": {
+                          "createdAt": {
+                            "integerValue": "1776191867334"
+                          },
+                          "updatedAt": {
+                            "integerValue": "1776191883521"
+                          }
+                        }
+                      }
+                    },
+                    "name": {
+                      "stringValue": "Alphonse Kingsman"
+                    },
+                    "origins": {
+                      "stringValue": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "createdAt": {
+          "timestampValue": "2026-04-14T13:31:54.419Z"
+        },
+        "edges": {
+          "arrayValue": {}
+        },
+        "loreEdges": {
+          "arrayValue": {}
+        },
+        "loreNodes": {
+          "arrayValue": {
+            "values": [
+              {
+                "mapValue": {
+                  "fields": {
+                    "data": {
+                      "mapValue": {
+                        "fields": {
+                          "color": {
+                            "stringValue": "#0891b2"
+                          },
+                          "description": {
+                            "stringValue": ""
+                          },
+                          "imageUrl": {
+                            "stringValue": ""
+                          },
+                          "label": {
+                            "stringValue": "New place"
+                          },
+                          "name": {
+                            "stringValue": "New Place"
+                          }
+                        }
+                      }
+                    },
+                    "height": {
+                      "integerValue": "264"
+                    },
+                    "id": {
+                      "stringValue": "place-1776192054892"
+                    },
+                    "position": {
+                      "mapValue": {
+                        "fields": {
+                          "x": {
+                            "doubleValue": 274.35618158991031
+                          },
+                          "y": {
+                            "doubleValue": 41.209343751338253
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "stringValue": "place"
+                    },
+                    "width": {
+                      "integerValue": "256"
+                    }
+                  }
+                }
+              },
+              {
+                "mapValue": {
+                  "fields": {
+                    "data": {
+                      "mapValue": {
+                        "fields": {
+                          "appearances": {
+                            "arrayValue": {}
+                          },
+                          "label": {
+                            "stringValue": "New event"
+                          },
+                          "noteColor": {
+                            "stringValue": "#6d28d9"
+                          },
+                          "threads": {
+                            "stringValue": ""
+                          },
+                          "title": {
+                            "stringValue": "New Event"
+                          }
+                        }
+                      }
+                    },
+                    "height": {
+                      "integerValue": "280"
+                    },
+                    "id": {
+                      "stringValue": "event-1776192057456"
+                    },
+                    "position": {
+                      "mapValue": {
+                        "fields": {
+                          "x": {
+                            "doubleValue": 830.14207633263
+                          },
+                          "y": {
+                            "doubleValue": -13.944981681145389
+                          }
+                        }
+                      }
+                    },
+                    "style": {
+                      "mapValue": {
+                        "fields": {
+                          "height": {
+                            "integerValue": "280"
+                          },
+                          "width": {
+                            "integerValue": "300"
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "stringValue": "event"
+                    },
+                    "width": {
+                      "integerValue": "300"
+                    }
+                  }
+                }
+              },
+              {
+                "mapValue": {
+                  "fields": {
+                    "data": {
+                      "mapValue": {
+                        "fields": {
+                          "content": {
+                            "stringValue": ""
+                          },
+                          "label": {
+                            "stringValue": "New note"
+                          },
+                          "noteColor": {
+                            "stringValue": "#6d28d9"
+                          }
+                        }
+                      }
+                    },
+                    "height": {
+                      "integerValue": "140"
+                    },
+                    "id": {
+                      "stringValue": "note-1776192059782"
+                    },
+                    "position": {
+                      "mapValue": {
+                        "fields": {
+                          "x": {
+                            "doubleValue": 84.851576257787
+                          },
+                          "y": {
+                            "doubleValue": 407.49063316193474
+                          }
+                        }
+                      }
+                    },
+                    "style": {
+                      "mapValue": {
+                        "fields": {
+                          "height": {
+                            "integerValue": "140"
+                          },
+                          "width": {
+                            "integerValue": "220"
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "stringValue": "note"
+                    },
+                    "width": {
+                      "integerValue": "220"
+                    }
+                  }
+                }
+              },
+              {
+                "mapValue": {
+                  "fields": {
+                    "data": {
+                      "mapValue": {
+                        "fields": {
+                          "color": {
+                            "stringValue": "#6d28d9"
+                          },
+                          "label": {
+                            "stringValue": ""
+                          },
+                          "opacity": {
+                            "doubleValue": 0.9
+                          },
+                          "shape": {
+                            "stringValue": "circle"
+                          }
+                        }
+                      }
+                    },
+                    "dragging": {
+                      "booleanValue": false
+                    },
+                    "height": {
+                      "integerValue": "100"
+                    },
+                    "id": {
+                      "stringValue": "shape-1776192063654"
+                    },
+                    "position": {
+                      "mapValue": {
+                        "fields": {
+                          "x": {
+                            "doubleValue": 518.79393170073411
+                          },
+                          "y": {
+                            "doubleValue": 367.88224668613373
+                          }
+                        }
+                      }
+                    },
+                    "positionAbsolute": {
+                      "mapValue": {
+                        "fields": {
+                          "x": {
+                            "doubleValue": 518.79393170073411
+                          },
+                          "y": {
+                            "doubleValue": 367.88224668613373
+                          }
+                        }
+                      }
+                    },
+                    "selected": {
+                      "booleanValue": true
+                    },
+                    "style": {
+                      "mapValue": {
+                        "fields": {
+                          "height": {
+                            "integerValue": "100"
+                          },
+                          "width": {
+                            "integerValue": "100"
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "stringValue": "shape"
+                    },
+                    "width": {
+                      "integerValue": "100"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "mainEdges": {
+          "arrayValue": {}
+        },
+        "mainNodes": {
+          "arrayValue": {
+            "values": [
+              {
+                "mapValue": {
+                  "fields": {
+                    "data": {
+                      "mapValue": {
+                        "fields": {
+                          "age": {
+                            "stringValue": "32"
+                          },
+                          "characterId": {
+                            "stringValue": "character-1776191867333"
+                          },
+                          "imageUrl": {
+                            "stringValue": ""
+                          },
+                          "label": {
+                            "stringValue": "New character"
+                          },
+                          "name": {
+                            "stringValue": "Alphonse Kingsman"
+                          }
+                        }
+                      }
+                    },
+                    "dragging": {
+                      "booleanValue": false
+                    },
+                    "height": {
+                      "integerValue": "220"
+                    },
+                    "id": {
+                      "stringValue": "character-1776191867333"
+                    },
+                    "position": {
+                      "mapValue": {
+                        "fields": {
+                          "x": {
+                            "doubleValue": 54.128324452593631
+                          },
+                          "y": {
+                            "doubleValue": -148.40796322458291
+                          }
+                        }
+                      }
+                    },
+                    "positionAbsolute": {
+                      "mapValue": {
+                        "fields": {
+                          "x": {
+                            "doubleValue": 54.128324452593631
+                          },
+                          "y": {
+                            "doubleValue": -148.40796322458291
+                          }
+                        }
+                      }
+                    },
+                    "selected": {
+                      "booleanValue": true
+                    },
+                    "style": {
+                      "mapValue": {}
+                    },
+                    "type": {
+                      "stringValue": "character"
+                    },
+                    "width": {
+                      "integerValue": "260"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "name": {
+          "stringValue": "Kingsman"
+        },
+        "nodes": {
+          "arrayValue": {}
+        },
+        "ownerId": {
+          "stringValue": "uQlDI3H71ARouPP9eKhyqBV2kw73"
+        },
+        "updatedAt": {
+          "integerValue": "1776192071394"
+        }
+      },
+      "name": "projects/loreweaver-9f42a/databases/(default)/documents/projects/K7p4pc3Y8C61L3bILpcd",
+      "updateTime": "2026-04-14T18:41:11.656780Z"
+    }
+  ]
+}
