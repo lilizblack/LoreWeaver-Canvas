@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, Plus, Search, Eye, BookOpen, StickyNote } from "lucide-react";
 import { useWorldStore, ChapterRecord, NoteRecord } from "@/store/useWorldStore";
 import { useCanvasStore } from "@/store/useCanvasStore";
+import { useUserStore } from "@/store/useUserStore";
 import { Node } from "reactflow";
 
 type Kind = 'chapter' | 'note';
@@ -62,6 +63,7 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
   const deleteNote    = useWorldStore((s) => s.deleteNote);
   const upsertChapter = useWorldStore((s) => s.upsertChapter);
   const upsertNote    = useWorldStore((s) => s.upsertNote);
+  const { tier, setSettingsOpen } = useUserStore();
 
   const mainNodes = useCanvasStore((s) => s.mainNodes);
   const addNode   = useCanvasStore((s) => s.addNode);
@@ -131,6 +133,32 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
   };
 
   const createNew = () => {
+    // ── Spark Plan Limits Enforcement ──────────────────────────────────────
+    if (tier === 'spark') {
+      const limits = { lore: 100 };
+      const ws = useWorldStore.getState();
+      const cs = useCanvasStore.getState();
+      
+      const libraryLoreCount = 
+        Object.keys(ws.places).length + 
+        Object.keys(ws.events).length + 
+        Object.keys(ws.concepts).length + 
+        Object.keys(ws.items).length +
+        Object.keys(ws.chapters).length +
+        Object.keys(ws.notes).length;
+
+      const allNodes = [...cs.mainNodes, ...cs.loreNodes];
+      const nodeLoreCount = allNodes.filter(n => 
+        n.type === 'image' || n.type === 'media' || n.type === 'lore' || n.type === 'shape'
+      ).length;
+      
+      if (libraryLoreCount + nodeLoreCount >= limits.lore) {
+        alert(`The Chronicler's Vault is full (100/100 Lore Elements). Ascend to Pro to expand your world's archive.`);
+        setSettingsOpen(true);
+        return;
+      }
+    }
+
     const id = `${kind}-${Date.now()}`;
     const now = Date.now();
     if (kind === 'chapter') {

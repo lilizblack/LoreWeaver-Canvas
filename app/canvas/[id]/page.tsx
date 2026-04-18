@@ -7,8 +7,7 @@ import { useEffect, use, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function CanvasPage({ params }: { params: Promise<{ id: string }> }) {
   const { user, loading: authLoading } = useAuth();
@@ -45,17 +44,19 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
 
   if (authLoading) {
     return (
-      <div className="h-screen w-full bg-[#0a0a0c] flex items-center justify-center">
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.5, 1, 0.5],
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="text-purple-500 font-serif text-2xl"
-        >
-          Consulting the Lore...
-        </motion.div>
+      <div className="h-screen w-full bg-[#0a0a0c] flex items-center justify-center text-center px-10">
+        <div className="flex flex-col items-center gap-8">
+          <BrandLogo className="w-20 h-20" withGlow />
+          <motion.div
+            animate={{
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="text-zinc-500 font-serif text-2xl tracking-widest uppercase"
+          >
+            Consulting the Lore...
+          </motion.div>
+        </div>
       </div>
     );
   }
@@ -64,19 +65,6 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <main className="h-screen w-full overflow-hidden relative">
-      {/* Dynamic Header */}
-      <div className="absolute top-6 left-6 z-50 flex items-center gap-4">
-        <Link 
-          href="/dashboard"
-          className="p-2 rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-all group"
-        >
-          <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-        </Link>
-        <div className="px-5 py-2 rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/5">
-          <h1 className="text-sm font-medium text-zinc-400 tracking-wider uppercase mb-0.5">Project</h1>
-          <p className="text-white font-serif text-lg leading-none">{projectName}</p>
-        </div>
-      </div>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -87,7 +75,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
           transition={{ duration: 0.5 }}
           className="h-full w-full"
         >
-          <Canvas projectId={projectId} />
+          <Canvas projectId={projectId} projectName={projectName} />
         </motion.div>
       </AnimatePresence>
     </main>

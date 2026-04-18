@@ -7,8 +7,10 @@ import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from "f
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Book, Plus, Settings, LogOut, Loader2, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useUserStore } from "@/store/useUserStore";
+import { Suspense } from "react";
 
 interface Project {
   id: string;
@@ -16,7 +18,7 @@ interface Project {
   updatedAt: any;
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const { user, logout, loading: authLoading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -24,6 +26,24 @@ export default function Dashboard() {
   const [newProjectName, setNewProjectName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { setWeaverProPaymentInfo, setTier } = useUserStore();
+
+  useEffect(() => {
+    const success = searchParams.get("payment_success");
+    const tier = searchParams.get("tier");
+
+    if (success === "true" && tier === "pro") {
+      setWeaverProPaymentInfo({
+        date: Date.now(),
+        method: 'stripe',
+        transactionId: 'stripe_session_' + Date.now()
+      });
+      setTier('pro');
+      // Clean up the URL
+      router.replace('/dashboard');
+    }
+  }, [searchParams, setWeaverProPaymentInfo, setTier, router]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -93,10 +113,8 @@ export default function Dashboard() {
       {/* Navigation */}
       <nav className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform">
-              <Sparkles className="text-white w-6 h-6" />
-            </div>
+          <Link href="/" className="flex items-center gap-4 group">
+            <BrandLogo className="w-10 h-10" />
             <span className="text-2xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
               LoreWeaver
             </span>
@@ -236,5 +254,13 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full bg-[#0a0a0c] flex items-center justify-center"><Loader2 className="w-8 h-8 text-purple-500 animate-spin" /></div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

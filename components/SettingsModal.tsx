@@ -5,10 +5,13 @@ import {
   Settings, Sparkles, Gem, Terminal, Save, X, ShieldCheck,
   ExternalLink, ChevronRight, ChevronLeft, CheckCircle2,
   ClipboardPaste, Info, Rocket, Key, Copy, Check,
-  AlertCircle, ArrowRightLeft, Loader2
+  AlertCircle, ArrowRightLeft, Loader2, CreditCard, Wallet, Calendar, History, Shield
 } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 import { useUserStore, UserTier } from '@/store/useUserStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { loadStripe } from "@stripe/stripe-js";
 import { db as masterDb } from '@/lib/firebase';
 import { doc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { encryptConfig } from '@/lib/configCrypto';
@@ -96,10 +99,13 @@ export function SettingsModal() {
   const { user } = useAuth();
   const {
     tier, customFirebaseConfig, setTier, setCustomFirebaseConfig,
-    isSettingsOpen, setSettingsOpen
+    isSettingsOpen, setSettingsOpen, weaverProPaymentInfo, setWeaverProPaymentInfo, settingsTab
   } = useUserStore();
 
-  const [pendingTier, setPendingTier] = useState<UserTier>(tier);
+  const [activeTab, setActiveTab] = useState<'hosting' | 'billing'>(settingsTab);
+  const [pendingTier, setPendingTier] = useState<'spark' | 'pro' | 'byoh'>(tier);
+  const [showPaymentOverlay, setShowPaymentOverlay] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [success, setSuccess]         = useState(false);
   const [isSaving, setIsSaving]       = useState(false);
@@ -115,6 +121,7 @@ export function SettingsModal() {
   // Reset state when modal opens
   useEffect(() => {
     if (isSettingsOpen) {
+      setActiveTab(settingsTab);
       setPendingTier(tier);
       setError(null);
       setSuccess(false);
@@ -127,12 +134,48 @@ export function SettingsModal() {
 
   // Reset BYOH step when user switches away from BYOH then back
   const handleTierChange = useCallback((newTier: UserTier) => {
-    setPendingTier(newTier);
     setError(null);
-    if (newTier === 'byoh') {
-      setByohStep(customFirebaseConfig ? 'manual' : 'ask');
+    if (newTier === 'pro' && !weaverProPaymentInfo) {
+      setShowPaymentOverlay(true);
+      // We don't setPendingTier yet, we wait for payment
+    } else {
+      setPendingTier(newTier);
+      if (newTier === 'byoh') {
+        setByohStep(customFirebaseConfig ? 'manual' : 'ask');
+      }
     }
-  }, [customFirebaseConfig]);
+  }, [customFirebaseConfig, weaverProPaymentInfo]);
+
+  const handleStripeCheckout = async () => {
+    if (!user) return;
+    setIsProcessingPayment(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.uid, email: user.email }),
+      });
+      const { url, error } = await res.json();
+      if (error) throw new Error(error);
+      window.location.href = url;
+    } catch (e: any) {
+      setError(e.message || "Failed to initiate Stripe connection.");
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handlePaymentSuccess = (method: 'stripe' | 'paypal', transactionId: string) => {
+    const info = {
+      date: Date.now(),
+      method,
+      transactionId
+    };
+    setWeaverProPaymentInfo(info);
+    setPendingTier('pro');
+    setShowPaymentOverlay(false);
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 3000);
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -180,7 +223,11 @@ export function SettingsModal() {
       // Save tier + encrypted BYOH config to Master Firestore
       // Using setDoc+merge so new user documents are created automatically
       const userDocRef = doc(masterDb, 'users', user.uid);
-      const masterPayload: Record<string, any> = { tier: pendingTier, updatedAt: Date.now() };
+      const masterPayload: Record<string, any> = { 
+        tier: pendingTier, 
+        updatedAt: Date.now(),
+        weaverProPaymentInfo: weaverProPaymentInfo 
+      };
 
       if (pendingTier === 'byoh' && finalConfig) {
         // Encrypt before persisting — raw keys never stored in plaintext
@@ -222,7 +269,8 @@ export function SettingsModal() {
   const saveDisabled =
     isSaving ||
     isMigrating ||
-    (pendingTier === 'byoh' && byohStep !== 'manual' && byohStep !== 'guide-finish');
+    (pendingTier === 'byoh' && byohStep !== 'manual' && byohStep !== 'guide-finish') ||
+    (pendingTier === 'pro' && !weaverProPaymentInfo);
 
   if (!user) return null;
 
@@ -249,17 +297,15 @@ export function SettingsModal() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl bg-[#0a0a0c] border border-white/10 rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col z-10"
+              className="w-full max-w-4xl h-[80vh] bg-[#0a0a0c] border border-white/10 rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col z-10"
             >
               {/* Header */}
               <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-br from-[#16161d] to-transparent shrink-0">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                    <Settings className="w-6 h-6 text-indigo-400" />
-                  </div>
+                  <BrandLogo className="w-10 h-10" />
                   <div>
                     <h2 className="text-2xl font-serif font-bold tracking-tight text-white italic">Sanctum Settings</h2>
-                    <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-black mt-0.5">Configuration &amp; Hosting Tiers</p>
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-black mt-0.5">Configuration &amp; Archive Control</p>
                   </div>
                 </div>
                 <button onClick={() => setSettingsOpen(false)} className="p-2.5 text-zinc-500 hover:text-white hover:bg-white/5 rounded-full transition-all">
@@ -267,73 +313,114 @@ export function SettingsModal() {
                 </button>
               </div>
 
-              {/* Body — scrollable */}
-              <div className="p-10 space-y-10 overflow-y-auto max-h-[65vh] custom-scrollbar">
-
-                {/* Tier Selection */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-400/80">Select Your Path</label>
-                    <span className="text-[10px] text-zinc-600 font-serif italic">Login always via Lore Weaver Master</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    <TierCard active={pendingTier === 'spark'} onClick={() => handleTierChange('spark')}
-                      icon={<Sparkles className="w-5 h-5" />} title="Spark" color="zinc"
-                      desc="Data lives in the Master Archive. Perfect for solo scribes."
-                      subtext="Limited to 50 Characters & 100 Lore Items." />
-
-                    <TierCard active={pendingTier === 'pro'} onClick={() => handleTierChange('pro')}
-                      icon={<Gem className="w-5 h-5" />} title="Weaver Pro" color="emerald"
-                      desc="Unlimited elements and high-definition assets. $5/mo."
-                      subtext="Stored securely in the Master Archive." badge="Most Popular" />
-
-                    <TierCard active={pendingTier === 'byoh'} onClick={() => handleTierChange('byoh')}
-                      icon={<Terminal className="w-5 h-5" />} title="Bring Your Own Hosting" color="indigo"
-                      desc="Direct routing to your personal Firebase instance."
-                      subtext="Data remains completely private on your servers." />
-                  </div>
+              <div className="flex-1 flex overflow-hidden">
+                {/* Sidebar */}
+                <div className="w-64 border-r border-white/5 bg-black/20 p-6 flex flex-col gap-2">
+                  <button
+                    onClick={() => setActiveTab('hosting')}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      activeTab === 'hosting' 
+                        ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]' 
+                        : 'text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent'
+                    }`}
+                  >
+                    <Shield className="w-4 h-4" />
+                    Sanctum Path
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('billing')}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      activeTab === 'billing' 
+                        ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]' 
+                        : 'text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Billing & History
+                  </button>
                 </div>
 
-                {/* BYOH Wizard — inline, no AnimatePresence wrapping to avoid scroll issues */}
-                {pendingTier === 'byoh' && (
-                  <div className="pt-6 border-t border-white/5 space-y-6">
-                    {byohStep === 'ask' && (
-                      <ByohAsk
-                        onHaveKeys={() => setByohStep('manual')}
-                        onNeedGuide={() => setByohStep('guide-project')}
-                      />
-                    )}
-                    {(byohStep === 'manual' || byohStep === 'guide-finish') && (
-                      <ByohManual
-                        formConfig={formConfig}
-                        setFormConfig={setFormConfig}
-                        error={error}
-                        onBack={() => byohStep === 'guide-finish' ? setByohStep('guide-rules') : setByohStep('ask')}
-                        isGuideFinish={byohStep === 'guide-finish'}
-                        isMigrating={isMigrating}
-                        migrationResult={migrationResult}
-                      />
-                    )}
-                    {byohStep === 'guide-project' && (
-                      <ByohGuideProject onNext={() => setByohStep('guide-app')} onBack={() => setByohStep('ask')} />
-                    )}
-                    {byohStep === 'guide-app' && (
-                      <ByohGuideApp onNext={() => setByohStep('guide-rules')} onBack={() => setByohStep('guide-project')} />
-                    )}
-                    {byohStep === 'guide-rules' && (
-                      <ByohGuideRules onNext={() => setByohStep('guide-finish')} onBack={() => setByohStep('guide-app')} copied={copied} onCopy={copyRules} />
-                    )}
-                  </div>
-                )}
+                {/* Content Area */}
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                  {activeTab === 'hosting' ? (
+                    <div className="space-y-8 max-w-2xl mx-auto">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-serif font-bold text-white italic">Choose Your Path</h3>
+                        <p className="text-[11px] text-zinc-500 leading-relaxed">Select how your Lore is archived and retrieved.</p>
+                      </div>
 
-                {/* Top-level error (non-BYOH) */}
-                {error && pendingTier !== 'byoh' && (
-                  <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-2xl flex items-center gap-3">
-                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                    <p className="text-red-400 text-[11px] font-bold">{error}</p>
-                  </div>
-                )}
+                      <div className="grid grid-cols-1 gap-4">
+                        <TierCard 
+                          active={pendingTier === 'spark'} 
+                          onClick={() => handleTierChange('spark')}
+                          icon={<Sparkles className="w-6 h-6" />}
+                          title="Spark Archive"
+                          desc="Free tier on our master archive. (30 Characters, 100 Lore Elements)."
+                          subtext="The humble beginning"
+                          color="zinc"
+                        />
+                        <TierCard 
+                          active={pendingTier === 'pro'} 
+                          onClick={() => handleTierChange('pro')}
+                          icon={<Gem className="w-6 h-6" />}
+                          title="Weaver Pro"
+                          desc="Unlimited projects and lore items on our high-performance archive."
+                          subtext="$5.00 / Moon Cycle"
+                          color="indigo"
+                          badge={weaverProPaymentInfo ? "Enlightened" : "Ascend Now"}
+                        />
+                        <TierCard 
+                          active={pendingTier === 'byoh'} 
+                          onClick={() => handleTierChange('byoh')}
+                          icon={<Terminal className="w-6 h-6" />}
+                          title="Ancient Conduit (BYOH)"
+                          desc="Route all your lore to your own private Firebase project. Absolute sovereignty."
+                          subtext="Technomancer's choice"
+                          color="emerald"
+                        />
+                      </div>
+
+                      <div className="pt-4">
+                        <AnimatePresence mode="wait">
+                          {pendingTier === 'byoh' && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] space-y-6 shadow-[0_0_50px_rgba(16,185,129,0.05)]"
+                            >
+                              {byohStep === 'ask' && (
+                                <ByohAsk onHaveKeys={() => setByohStep('manual')} onNeedGuide={() => setByohStep('guide-project')} />
+                              )}
+                              {byohStep === 'guide-project' && <ByohGuideProject onNext={() => setByohStep('guide-app')} onBack={() => setByohStep('ask')} />}
+                              {byohStep === 'guide-app' &&     <ByohGuideApp onNext={() => setByohStep('guide-rules')} onBack={() => setByohStep('guide-project')} />}
+                              {byohStep === 'guide-rules' &&   <ByohGuideRules onNext={() => setByohStep('guide-finish')} onBack={() => setByohStep('guide-app')} copied={copied} onCopy={copyRules} />}
+                              {byohStep === 'guide-finish' &&  <ByohManual formConfig={formConfig} setFormConfig={setFormConfig} error={error} onBack={() => setByohStep('guide-rules')} isGuideFinish isMigrating={isMigrating} migrationResult={migrationResult} />}
+                              {byohStep === 'manual' &&        <ByohManual formConfig={formConfig} setFormConfig={setFormConfig} error={error} onBack={() => setByohStep('ask')} isMigrating={isMigrating} migrationResult={migrationResult} />}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  ) : (
+                    <BillingContent 
+                      tier={tier} 
+                      paymentInfo={weaverProPaymentInfo}
+                      onAscend={() => {
+                        setActiveTab('hosting');
+                        handleTierChange('pro');
+                      }}
+                    />
+                  )}
+
+                  {/* Top-level error (non-BYOH) */}
+                  {error && pendingTier !== 'byoh' && (
+                    <div className="mt-6 p-4 bg-red-500/5 border border-red-500/20 rounded-2xl flex items-center gap-3">
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                      <p className="text-red-400 text-[11px] font-bold">{error}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Footer */}
@@ -363,6 +450,18 @@ export function SettingsModal() {
                 </button>
               </div>
             </motion.div>
+
+            <AnimatePresence>
+              {showPaymentOverlay && (
+                <PaymentOverlay
+                  onClose={() => setShowPaymentOverlay(false)}
+                  onSuccess={handlePaymentSuccess}
+                  userEmail={user?.email}
+                  isProcessing={isProcessingPayment}
+                  onStripe={handleStripeCheckout}
+                />
+              )}
+            </AnimatePresence>
           </div>
         )}
       </AnimatePresence>
@@ -370,7 +469,112 @@ export function SettingsModal() {
   );
 }
 
+// ─── Billing Content ─────────────────────────────────────────────────────────
+
+function BillingContent({ tier, paymentInfo, onAscend }: { 
+  tier: UserTier; 
+  paymentInfo: any;
+  onAscend: () => void;
+}) {
+  return (
+    <div className="space-y-8 max-w-2xl mx-auto">
+      <div className="space-y-2">
+        <h3 className="text-xl font-serif font-bold text-white italic">Subscription &amp; Billing</h3>
+        <p className="text-[11px] text-zinc-500 leading-relaxed">Manage your celestial pact and payment history.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-500/10 rounded-xl">
+              <Shield className="w-4 h-4 text-indigo-400" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Current Tier</span>
+          </div>
+          <div className="space-y-1">
+            <h4 className="text-lg font-bold text-white uppercase tracking-tighter">
+              {tier === 'spark' ? 'Spark Archive' : tier === 'pro' ? 'Weaver Pro' : 'Ancient Conduit'}
+            </h4>
+            <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">
+              {tier === 'spark' ? 'Mortal Path' : 'Divine Connection'}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-500/10 rounded-xl">
+              <Calendar className="w-4 h-4 text-emerald-400" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Billing Cycle</span>
+          </div>
+          <div className="space-y-1">
+            <h4 className="text-lg font-bold text-white uppercase tracking-tighter">
+              {tier === 'pro' ? '$5.00 / Month' : 'None'}
+            </h4>
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+              Next Tribute: {paymentInfo ? new Date(paymentInfo.date + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : 'N/A'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {tier === 'spark' && (
+        <div className="p-8 bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20 rounded-[2rem] flex flex-col items-center text-center gap-4">
+          <Gem className="w-10 h-10 text-indigo-400" />
+          <div className="space-y-2">
+            <h4 className="text-sm font-bold text-white uppercase tracking-widest">Ascend to Weaver Pro</h4>
+            <p className="text-xs text-zinc-500 leading-relaxed max-w-sm">
+              Unlock unlimited projects, high-performance archival, and advanced lore visualization tools.
+            </p>
+          </div>
+          <button 
+            onClick={onAscend}
+            className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95"
+          >
+            Ascend Now
+          </button>
+        </div>
+      )}
+
+      {paymentInfo && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-zinc-500" />
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Payment History</h4>
+          </div>
+          
+          <div className="overflow-x-auto custom-scrollbar border border-white/5 rounded-3xl bg-black/40">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5 bg-white/5">
+                  <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-zinc-400">Date</th>
+                  <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-zinc-400">Method</th>
+                  <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-zinc-400">Transaction ID</th>
+                  <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-zinc-400">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                <tr>
+                  <td className="px-6 py-4 text-[11px] text-white font-mono">{new Date(paymentInfo.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-[11px] text-zinc-400 capitalize flex items-center gap-2">
+                    {paymentInfo.method === 'stripe' ? <CreditCard className="w-3 h-3" /> : <Wallet className="w-3 h-3" />}
+                    {paymentInfo.method}
+                  </td>
+                  <td className="px-6 py-4 text-[11px] text-zinc-500 font-mono truncate max-w-[120px]">{paymentInfo.transactionId}</td>
+                  <td className="px-6 py-4 text-[11px] text-emerald-400 font-bold">$5.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── BYOH Sub-components ──────────────────────────────────────────────────────
+
 
 function ByohAsk({ onHaveKeys, onNeedGuide }: { onHaveKeys: () => void; onNeedGuide: () => void }) {
   return (
@@ -680,3 +884,108 @@ function TierCard({ active, onClick, icon, title, desc, subtext, color, badge }:
     </button>
   );
 }
+
+function PaymentOverlay({
+  onClose,
+  onSuccess,
+  userEmail,
+  isProcessing,
+  onStripe
+}: {
+  onClose: () => void;
+  onSuccess: (method: 'stripe' | 'paypal', id: string) => void;
+  userEmail?: string | null;
+  isProcessing: boolean;
+  onStripe: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 z-[1100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-8"
+    >
+      {/* Background click to close */}
+      <div className="absolute inset-0" onClick={onClose} />
+
+      <div className="w-full max-w-sm space-y-8 relative z-10">
+        {/* Top Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute -top-12 -right-4 p-2 text-zinc-500 hover:text-white transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        <div className="text-center space-y-4">
+          <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(16,185,129,0.1)]">
+            <Shield className="w-10 h-10 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-serif font-bold text-white italic">Evolution of Power</h3>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-black mt-2">Unlock Weaver Pro — $5/mo</p>
+          </div>
+        </div>
+
+
+        <div className="space-y-4">
+          <button
+            onClick={onStripe}
+            disabled={isProcessing}
+            className="w-full p-6 bg-white text-black rounded-3xl flex items-center justify-between group hover:bg-zinc-200 transition-all active:scale-[0.98] disabled:opacity-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-black/5 rounded-xl">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-black uppercase tracking-widest">Pay with Stripe</span>
+            </div>
+            <ArrowRightLeft className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/5"></div>
+            </div>
+            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest text-zinc-700 bg-black/95 px-4">
+              or
+            </div>
+          </div>
+
+          <div className="rounded-3xl overflow-hidden bg-white/5 border border-white/10 p-4">
+            <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "" }}>
+              <PayPalButtons
+                style={{ layout: "vertical", shape: "pill", label: "pay" }}
+                disabled={isProcessing}
+                createOrder={async () => {
+                  const res = await fetch("/api/paypal/create-order", { method: "POST" });
+                  const data = await res.json();
+                  return data.id;
+                }}
+                onApprove={async (data) => {
+                  const res = await fetch("/api/paypal/capture-order", {
+                    method: "POST",
+                    body: JSON.stringify({ orderID: data.orderID }),
+                  });
+                  const captured = await res.json();
+                  if (captured.status === "COMPLETED") {
+                    onSuccess('paypal', captured.id);
+                  }
+                }}
+              />
+            </PayPalScriptProvider>
+          </div>
+        </div>
+
+        <button
+          onClick={onClose}
+          disabled={isProcessing}
+          className="w-full py-4 text-[10px] text-zinc-600 font-black uppercase tracking-widest hover:text-white transition-colors"
+        >
+          Relinquish this path
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+

@@ -47,7 +47,7 @@ export function UsageBar() {
   const loreCount = libraryLoreCount + nodeLoreCount;
 
   const limits = {
-    spark: { chars: 50, lore: 200 },
+    spark: { chars: 30, lore: 100 },
   };
 
   if (tier !== 'spark') return null;

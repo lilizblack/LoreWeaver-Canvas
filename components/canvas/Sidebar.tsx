@@ -12,7 +12,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Node } from 'reactflow';
+import Link from 'next/link';
+import { useWorldStore } from '@/store/useWorldStore';
 import { UsageBar } from './UsageBar';
+import { BrandLogo } from '../BrandLogo';
+import { ChevronLeft } from 'lucide-react';
 
 const NOTE_COLORS = [
   '#6d28d9', '#7c3aed', '#2563eb', '#0891b2',
@@ -49,22 +53,83 @@ const FONT_SIZES = [
   { key: 'xl',  label: 'XL' },
 ] as const;
 
-export function Sidebar() {
+export function Sidebar({ projectName }: { projectName: string }) {
   const { addNode, canvasMode } = useCanvasStore();
   const { theme, toggleTheme, fontSize, setFontSize } = useThemeStore();
-  const { setSettingsOpen } = useUserStore();
+  const { tier, setSettingsOpen } = useUserStore();
   const [shapesOpen, setShapesOpen] = useState(false);
 
   const isDark = theme === 'dark';
   const isLore = canvasMode === 'lore';
 
   const onDragStart = (e: React.DragEvent, nodeType: string, extra?: any) => {
+    // ── Spark Plan Limits Enforcement ──────────────────────────────────────
+    if (tier === 'spark') {
+      const ws = useWorldStore.getState();
+      const cs = useCanvasStore.getState();
+
+      if (nodeType === 'character') {
+        const charCount = Object.keys(ws.characters).length;
+        if (charCount >= 50) {
+          alert(`The Character Gallery is full (50/50 Characters). Ascend to Pro to expand your story's cast.`);
+          setSettingsOpen(true, 'billing');
+          e.preventDefault();
+          return;
+        }
+      } else {
+        const libraryLoreCount = 
+          Object.keys(ws.places).length + 
+          Object.keys(ws.events).length + 
+          Object.keys(ws.concepts).length + 
+          Object.keys(ws.items).length +
+          Object.keys(ws.chapters).length +
+          Object.keys(ws.notes).length;
+
+        const allNodes = [...cs.mainNodes, ...cs.loreNodes];
+        const nodeLoreCount = allNodes.filter(n => 
+          ['image', 'media', 'lore', 'shape', 'chapter', 'note'].includes(n.type || '')
+        ).length;
+        
+        if (libraryLoreCount + nodeLoreCount >= 100) {
+          alert(`The Chronicler's Vault is full (100/100 Lore Elements). Ascend to Pro to expand your world's archive.`);
+          setSettingsOpen(true, 'billing');
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
     e.dataTransfer.setData('application/reactflow', nodeType);
     if (extra) e.dataTransfer.setData('application/nodedata', JSON.stringify(extra));
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const dropShape = (shape: string, color: string) => {
+    // ── Spark Plan Limits Enforcement ──────────────────────────────────────
+    if (tier === 'spark') {
+      const ws = useWorldStore.getState();
+      const cs = useCanvasStore.getState();
+      
+      const libraryLoreCount = 
+        Object.keys(ws.places).length + 
+        Object.keys(ws.events).length + 
+        Object.keys(ws.concepts).length + 
+        Object.keys(ws.items).length +
+        Object.keys(ws.chapters).length +
+        Object.keys(ws.notes).length;
+
+      const allNodes = [...cs.mainNodes, ...cs.loreNodes];
+      const nodeLoreCount = allNodes.filter(n => 
+        ['image', 'media', 'lore', 'shape', 'chapter', 'note'].includes(n.type || '')
+      ).length;
+      
+      if (libraryLoreCount + nodeLoreCount >= 100) {
+        alert(`The Chronicler's Vault is full (100/100 Lore Elements). Ascend to Pro to expand your world's archive.`);
+        setSettingsOpen(true, 'billing');
+        return;
+      }
+    }
+
     const id = `shape-${Date.now()}`;
     const newNode: Node = {
       id,
@@ -96,32 +161,43 @@ export function Sidebar() {
   const templates = isLore ? loreTemplates : mainTemplates;
 
   return (
-    <div style={{
-      width: 230,
+    <div className="custom-scrollbar" style={{
+      width: 'var(--sidebar-width, 240px)',
+      maxHeight: 'calc(100vh - 40px)',
+      overflowY: 'auto',
       background: 'var(--glass)',
-      backdropFilter: 'blur(16px)',
+      backdropFilter: 'blur(32px)',
       border: '1px solid var(--border-2)',
-      borderRadius: 20,
+      borderRadius: 24,
       padding: 16,
       display: 'flex',
       flexDirection: 'column',
       gap: 16,
       boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.5)' : '0 20px 50px rgba(0,0,0,0.08)',
       color: 'var(--fg)',
+      transition: 'width 0.3s ease',
     }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 2px' }}>
-        <div style={{ 
-          width: 34, height: 34, borderRadius: 10, 
-          background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', 
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(124,58,237,0.3)'
-        }}>
-          <Plus style={{ width: 18, height: 18, color: 'white' }} />
+      {/* Integrated Navigation Header */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <Link 
+            href="/dashboard"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-zinc-400 hover:text-white transition-all group"
+          >
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          </Link>
+          <div className="flex items-center gap-2 pr-2">
+            <BrandLogo className="w-8 h-8" withGlow={false} />
+            <div className="w-px h-4 bg-white/10 mx-1" />
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">Loreweaver</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--fg)', letterSpacing: '-0.01em' }}>Creation Portal</span>
-          <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--fg-3)', textTransform: 'uppercase' }}>Design your world</span>
+
+        <div className="px-1">
+          <h2 className="text-white font-serif text-xl leading-tight truncate" title={projectName}>
+            {projectName}
+          </h2>
+          <span className="text-[9px] font-bold text-purple-400 uppercase tracking-[0.2em] mt-1 block">Active Workspace</span>
         </div>
       </div>
 

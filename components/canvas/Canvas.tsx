@@ -15,8 +15,9 @@ import 'reactflow/dist/style.css';
 
 import { useCanvasStore } from '@/store/useCanvasStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useUserStore } from '@/store/useUserStore';
 import { Sidebar } from './Sidebar';
-import { Users, Share2, Save, MapPin, Calendar, Heart, Check, AlertTriangle, Circle, Loader2, Eye, EyeOff, User, BookOpen, StickyNote, FileText, Image as ImageIcon, Scroll, Gem, Shapes, Download, Upload } from 'lucide-react';
+import { Users, Share2, Save, MapPin, Calendar, Heart, Check, AlertTriangle, Circle, Loader2, Eye, EyeOff, User, BookOpen, StickyNote, FileText, Image as ImageIcon, Scroll, Gem, Shapes, Download, Upload, Library, ChevronDown, MoreHorizontal, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CharacterNode } from './nodes/CharacterNode';
 import { PlaceNode } from './nodes/PlaceNode';
@@ -58,7 +59,7 @@ const nodeTypes: any = {
 
 
 
-function CanvasInner({ projectId }: { projectId: string }) {
+function CanvasInner({ projectId, projectName }: { projectId: string, projectName: string }) {
   const nodes = useCanvasStore((state) => state.nodes);
   const edges = useCanvasStore((state) => state.edges);
   const onNodesChange = useCanvasStore((state) => state.onNodesChange);
@@ -66,6 +67,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
   const onConnect = useCanvasStore((state) => state.onConnect);
   const addNode = useCanvasStore((state) => state.addNode);
   const setSelectedNodeId = useCanvasStore((state) => state.setSelectedNodeId);
+  const { tier, setSettingsOpen } = useUserStore();
   const hideThreads = useCanvasStore((state) => state.hideThreads);
   const setHideThreads = useCanvasStore((state) => state.setHideThreads);
   const hiddenTypes = useCanvasStore((state) => state.hiddenTypes);
@@ -73,6 +75,8 @@ function CanvasInner({ projectId }: { projectId: string }) {
   const setHiddenTypes = useCanvasStore((state) => state.setHiddenTypes);
   const { canvasMode, threadEdges } = useCanvasStore();
   const [visibilityOpen, setVisibilityOpen] = React.useState(false);
+  const [libraryMenuOpen, setLibraryMenuOpen] = React.useState(false);
+  const [optionsMenuOpen, setOptionsMenuOpen] = React.useState(false);
   const { theme, fontSize } = useThemeStore();
   const { screenToFlowPosition } = useReactFlow();
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -143,6 +147,49 @@ function CanvasInner({ projectId }: { projectId: string }) {
 
       const type = event.dataTransfer.getData('application/reactflow');
       if (!type) return;
+
+      // ── Spark Plan Limits Enforcement ──────────────────────────────────────
+      if (tier === 'spark') {
+        const limits = { chars: 30, lore: 100 };
+        
+        // Count characters
+        const charCount = Object.keys(useWorldStore.getState().characters).length;
+        
+        // Count lore items (all categories + canvas elements)
+        const ws = useWorldStore.getState();
+        const cs = useCanvasStore.getState();
+        const libraryLoreCount = 
+          Object.keys(ws.places).length + 
+          Object.keys(ws.events).length + 
+          Object.keys(ws.concepts).length + 
+          Object.keys(ws.items).length +
+          Object.keys(ws.chapters).length +
+          Object.keys(ws.notes).length;
+
+        const allNodes = [...cs.mainNodes, ...cs.loreNodes];
+        const nodeLoreCount = allNodes.filter(n => 
+          n.type === 'image' || n.type === 'media' || n.type === 'lore' || n.type === 'shape'
+        ).length;
+        const totalLore = libraryLoreCount + nodeLoreCount;
+
+        if (type === 'character' && charCount >= 50) {
+          alert(`The Soul Weaver is at capacity (50/50 Characters). Ascend to Pro to craft more lives.`);
+          setSettingsOpen(true, 'billing');
+          return;
+        }
+        
+        // Almost all other types count as lore elements
+        const isLoreType = [
+          'place', 'event', 'concept', 'item', 'note', 'chapter', 
+          'image', 'media', 'lore', 'shape'
+        ].includes(type);
+
+        if (isLoreType && totalLore >= limits.lore) {
+          alert(`The Chronicler's Vault is full (100/100 Lore Elements). Ascend to Pro to expand your world's archive.`);
+          setSettingsOpen(true);
+          return;
+        }
+      }
 
       const rawExtra = event.dataTransfer.getData('application/nodedata');
       const extra = rawExtra ? JSON.parse(rawExtra) : {};
@@ -289,265 +336,235 @@ function CanvasInner({ projectId }: { projectId: string }) {
           maskColor="rgba(0,0,0,0.5)" 
           className="!bg-zinc-900/80 !border-zinc-800" 
         />
-        
-        <Panel position="top-left">
-          <Sidebar />
-        </Panel>
 
-        <Panel position="top-right" className="p-4 flex flex-col gap-3">
-          <div className="glass-panel px-6 py-3 rounded-2xl flex items-center gap-4 shadow-2xl" 
-               style={{ background: 'var(--glass)', borderColor: 'var(--border-2)' }}>
+        <Panel position="top-left" style={{ marginLeft: '12px' }} className="z-[1000]">
+          <Sidebar projectName={projectName} />
+        </Panel>
+        
+        <Panel position="top-right" className="p-4 flex flex-col items-end gap-3 z-[1000]">
+          <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-2 shadow-2xl overflow-visible" 
+               style={{ background: 'var(--glass)', borderColor: 'var(--border-2)', maxWidth: 'calc(100vw - 40px)' }}>
             
-            {/* Canva Toggle */}
-            <div className="flex bg-zinc-800/50 p-1 rounded-xl border border-white/5 shadow-inner">
+            {/* Canva Toggle - Minimal version for mobile */}
+            <div className="flex bg-zinc-800/50 p-1 rounded-xl border border-white/5 shadow-inner shrink-0">
               <button
                 onClick={() => useCanvasStore.getState().setCanvasMode('main')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
                   canvasMode === 'main' 
                   ? 'bg-purple-600 text-white shadow-lg' 
                   : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
-                Main Canva
+                Main
               </button>
               <button
                 onClick={() => useCanvasStore.getState().setCanvasMode('lore')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
                   canvasMode === 'lore' 
                   ? 'bg-amber-600 text-white shadow-lg' 
                   : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
-                Lore Canva
+                Lore
               </button>
             </div>
 
-            <div className="w-px h-6" style={{ background: 'var(--border)' }} />
+            <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
 
-            <button 
-              onClick={() => {
-                setEditingId(null);
-                setIsModalOpen(true);
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
-              style={{ background: 'var(--bg-3)', color: 'var(--fg-2)' }}
-              onMouseOver={e => e.currentTarget.style.color = 'var(--fg)'}
-              onMouseOut={e => e.currentTarget.style.color = 'var(--fg-2)'}
-            >
-              <Users className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">
-                Characters {charCount > 0 && `(${charCount})`}
-              </span>
-            </button>
-            <button
-              onClick={() => setChaptersLibOpen(true)}
-              title="Open the chapter notes library — even the ones no longer on the canvas"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
-              style={{ background: 'var(--bg-3)', color: 'var(--fg-2)' }}
-              onMouseOver={e => e.currentTarget.style.color = '#fbbf24'}
-              onMouseOut={e => e.currentTarget.style.color = 'var(--fg-2)'}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">
-                Chapters {chapterCount > 0 && `(${chapterCount})`}
-              </span>
-            </button>
-            <button
-              onClick={() => setNotesLibOpen(true)}
-              title="Open the notes library — even the ones no longer on the canvas"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
-              style={{ background: 'var(--bg-3)', color: 'var(--fg-2)' }}
-              onMouseOver={e => e.currentTarget.style.color = '#34d399'}
-              onMouseOut={e => e.currentTarget.style.color = 'var(--fg-2)'}
-            >
-              <StickyNote className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">
-                Notes {noteCount > 0 && `(${noteCount})`}
-              </span>
-            </button>
-            <div className="w-px h-6" style={{ background: 'var(--border)' }} />
+            {/* Chronicle Vault Dropdown - Saves space and floats */}
+            <div className="relative group">
+              <button 
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-white shadow-xl"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600/20 to-amber-600/20 flex items-center justify-center border border-white/10 shrink-0">
+                  <BookOpen className="w-4 h-4 text-purple-300" />
+                </div>
+                <div className="flex flex-col items-start leading-none pr-2">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Chronicle</span>
+                  <span className="text-xs font-serif text-zinc-100">The Vault</span>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
+              </button>
 
-            {/* Visibility toggles — hide/show element types */}
+              {/* Float-style Menu */}
+              <div className="absolute right-0 top-full pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-[1001]">
+                <div className="w-56 glass-panel p-2 rounded-2xl shadow-2xl border border-white/10" style={{ background: 'var(--bg-2)' }}>
+                  <div className="px-3 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest border-b border-white/5 mb-2">
+                    Gallery & Libraries
+                  </div>
+                  
+                  <button 
+                    onClick={() => { setEditingId(null); setIsModalOpen(true); }}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Users className="w-4 h-4 text-purple-400" />
+                      <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Characters</span>
+                    </div>
+                    <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-lg border border-purple-500/10">{charCount}</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setChaptersLibOpen(true)}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <BookOpen className="w-4 h-4 text-amber-400" />
+                      <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Chapters</span>
+                    </div>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-lg border border-amber-500/10">{chapterCount}</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setNotesLibOpen(true)}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <StickyNote className="w-4 h-4 text-emerald-400" />
+                      <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Notes</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-lg border border-emerald-500/10">{noteCount}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-px h-6 bg-white/10 mx-1" />
+
+            {/* Combined Options Menu for everything else */}
             <div className="relative">
               <button
-                onClick={() => setVisibilityOpen(v => !v)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all border"
-                style={{
-                  background: hiddenTypes.length > 0 ? 'rgba(251,191,36,0.1)' : 'var(--bg-3)',
-                  color: hiddenTypes.length > 0 ? '#fbbf24' : 'var(--fg-3)',
-                  borderColor: hiddenTypes.length > 0 ? 'rgba(251,191,36,0.3)' : 'transparent',
-                }}
+                onClick={() => setOptionsMenuOpen(v => !v)}
+                className="flex items-center justify-center p-2 rounded-xl transition-all hover:bg-white/5 active:scale-95"
+                style={{ color: optionsMenuOpen ? 'var(--fg)' : 'var(--fg-3)' }}
               >
-                {hiddenTypes.length > 0 ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                <span className="text-xs font-bold uppercase tracking-widest">
-                  {hiddenTypes.length === 0 ? 'All Visible' : `${hiddenTypes.length} Hidden`}
-                </span>
+                <MoreHorizontal className="w-5 h-5" />
               </button>
 
-              {visibilityOpen && (
-                <>
-                  {/* Click-outside catcher */}
-                  <div
-                    className="fixed inset-0 z-[90]"
-                    onClick={() => setVisibilityOpen(false)}
-                  />
-                  <div
-                    className="absolute right-0 mt-2 w-56 rounded-xl border shadow-2xl z-[100] overflow-hidden"
-                    style={{ background: 'var(--bg-2)', borderColor: 'var(--border)' }}
-                  >
-                    <div className="px-3 py-2 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
-                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--fg-3)' }}>
-                        Element Visibility
-                      </span>
-                      {hiddenTypes.length > 0 && (
-                        <button
-                          onClick={() => setHiddenTypes([])}
-                          className="text-[10px] font-bold text-purple-400 hover:text-purple-300"
-                        >
-                          Show All
-                        </button>
-                      )}
-                    </div>
-                    <div className="p-1 max-h-80 overflow-y-auto">
-                      {(canvasMode === 'main'
-                        ? [
-                            { type: 'character', label: 'Characters',  icon: User,       color: '#a78bfa' },
-                            { type: 'chapter',   label: 'Chapter Notes', icon: BookOpen, color: '#fbbf24' },
-                            { type: 'note',      label: 'Notes',        icon: StickyNote, color: '#34d399' },
-                            { type: 'lore',      label: 'Text Blocks',  icon: FileText,   color: '#c084fc' },
-                            { type: 'image',     label: 'Images',       icon: ImageIcon,  color: '#60a5fa' },
-                            { type: 'media',     label: 'Media',        icon: ImageIcon,  color: '#60a5fa' },
-                            { type: 'shape',     label: 'Shapes',       icon: Shapes,     color: '#94a3b8' },
-                          ]
-                        : [
-                            { type: 'place',   label: 'Places',         icon: MapPin,     color: '#2dd4bf' },
-                            { type: 'event',   label: 'Timeline Events', icon: Calendar,  color: '#f472b6' },
-                            { type: 'concept', label: 'Concepts / Terms', icon: Scroll,   color: '#fbbf24' },
-                            { type: 'item',    label: 'Items / Artifacts', icon: Gem,     color: '#fb7185' },
-                            { type: 'note',    label: 'Notes',          icon: StickyNote, color: '#34d399' },
-                            { type: 'image',   label: 'Images',         icon: ImageIcon,  color: '#60a5fa' },
-                            { type: 'shape',   label: 'Shapes',         icon: Shapes,     color: '#94a3b8' },
-                          ]
-                      ).map(item => {
-                        const isHidden = hiddenTypes.includes(item.type);
-                        const Icon = item.icon;
-                        return (
-                          <button
-                            key={item.type}
-                            onClick={() => toggleHiddenType(item.type)}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left"
-                            style={{
-                              background: isHidden ? 'transparent' : item.color + '10',
-                              color: isHidden ? 'var(--fg-3)' : 'var(--fg)',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = item.color + '22'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = isHidden ? 'transparent' : item.color + '10'; }}
+              <AnimatePresence>
+                {optionsMenuOpen && (
+                  <>
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[90]" 
+                      onClick={() => setOptionsMenuOpen(false)} 
+                    />
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-64 rounded-2xl border shadow-2xl z-[100] overflow-hidden backdrop-blur-2xl"
+                      style={{ background: 'var(--bg-2)', borderColor: 'var(--border-2)' }}
+                    >
+                      <div className="p-2 space-y-1">
+                        {/* Visibility Section */}
+                        <div className="px-3 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center justify-between">
+                          Visibility
+                          <button onClick={() => setHiddenTypes([])} className="text-purple-400 hover:text-purple-300 normal-case">Reset</button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 p-1">
+                          <button 
+                            onClick={() => setHideThreads(!hideThreads)}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-bold transition-all ${!hideThreads ? 'bg-purple-500/10 text-purple-400' : 'text-zinc-500 hover:bg-white/5'}`}
                           >
-                            <div
-                              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                              style={{ background: item.color + '22', opacity: isHidden ? 0.4 : 1 }}
-                            >
-                              <Icon className="w-3.5 h-3.5" style={{ color: item.color }} />
-                            </div>
-                            <span
-                              className="text-xs font-semibold flex-1"
-                              style={{ textDecoration: isHidden ? 'line-through' : 'none', opacity: isHidden ? 0.5 : 1 }}
-                            >
-                              {item.label}
-                            </span>
-                            {isHidden
-                              ? <EyeOff className="w-3.5 h-3.5" style={{ color: 'var(--fg-3)' }} />
-                              : <Eye className="w-3.5 h-3.5" style={{ color: item.color }} />
-                            }
+                            <Share2 className="w-3.5 h-3.5" /> Threads
                           </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </>
-              )}
+                          <button 
+                            onClick={() => setVisibilityOpen(!visibilityOpen)}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-bold transition-all ${hiddenTypes.length > 0 ? 'bg-amber-500/10 text-amber-400' : 'text-zinc-500 hover:bg-white/5'}`}
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Types
+                          </button>
+                        </div>
+
+                        <AnimatePresence>
+                          {visibilityOpen && (
+                            <motion.div 
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden border-t border-white/5 pt-1 mt-1 space-y-0.5"
+                            >
+                              {['character', 'place', 'event', 'concept', 'item', 'note', 'chapter', 'image', 'shape'].map(type => (
+                                <button
+                                  key={type}
+                                  onClick={() => toggleHiddenType(type)}
+                                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-bold transition-all hover:bg-white/5 ${!hiddenTypes.includes(type) ? 'text-zinc-400' : 'text-zinc-700 italic'}`}
+                                >
+                                  <span className="capitalize">{type === 'image' ? 'Images' : type + 's'}</span>
+                                  {!hiddenTypes.includes(type) 
+                                    ? <Eye className="w-3.5 h-3.5 text-purple-400/50" /> 
+                                    : <EyeOff className="w-3.5 h-3.5 text-zinc-700" />
+                                  }
+                                </button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <div className="h-px bg-white/5 my-2" />
+
+                        {/* Project Operations */}
+                        <div className="px-3 py-1 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Project</div>
+                        <button
+                          onClick={() => { exportBackup(); setOptionsMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-left group"
+                        >
+                          <Download className="w-4 h-4 text-zinc-500 group-hover:text-blue-400" />
+                          <span className="text-xs font-medium text-zinc-300">Export Backup</span>
+                        </button>
+                        <button
+                          onClick={() => { importInputRef.current?.click(); setOptionsMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-left group"
+                        >
+                          <Upload className="w-4 h-4 text-zinc-500 group-hover:text-amber-400" />
+                          <span className="text-xs font-medium text-zinc-300">Restore State</span>
+                        </button>
+
+                        <div className="h-px bg-white/5 my-2" />
+
+                        {/* Account Section */}
+                        <button
+                          onClick={() => { useUserStore.getState().setSettingsOpen(true, 'billing'); setOptionsMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-left group"
+                        >
+                          <Gem className="w-4 h-4 text-purple-400" />
+                          <span className="text-xs font-medium text-purple-200">Subscription & Billing</span>
+                        </button>
+                        <button
+                          onClick={() => { useUserStore.getState().setSettingsOpen(true, 'hosting'); setOptionsMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-left group"
+                        >
+                          <Settings className="w-4 h-4 text-zinc-500 group-hover:text-zinc-300" />
+                          <span className="text-xs font-medium text-zinc-300">Settings</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
-            <div className="w-px h-6" style={{ background: 'var(--border)' }} />
-            <button
-              onClick={() => setHideThreads(!hideThreads)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all border"
-              style={{ 
-                background: hideThreads ? 'var(--bg-3)' : 'rgba(124, 58, 237, 0.1)',
-                color: hideThreads ? 'var(--fg-3)' : 'var(--primary)',
-                borderColor: hideThreads ? 'transparent' : 'rgba(124, 58, 237, 0.3)',
-                boxShadow: hideThreads ? 'none' : '0 0 15px rgba(124, 58, 237, 0.2)'
-              }}
-            >
-              <Share2 className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">
-                {hideThreads ? 'Threads Hidden' : 'Threads Visible'}
-              </span>
-            </button>
-            <div className="w-px h-6" style={{ background: 'var(--border)' }} />
-            <h2 className="text-xl font-serif capitalize" style={{ color: 'var(--fg)' }}>
-              {canvasMode} Canva
-            </h2>
-            <div className="w-px h-6" style={{ background: 'var(--border)' }} />
+            <div className="w-px h-6 bg-white/10 mx-1 hidden md:block" />
 
-            {/* Manual export + import (belt-and-suspenders backup) */}
-            <button
-              onClick={exportBackup}
-              title="Download a backup file of your entire project"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
-              style={{ background: 'var(--bg-3)', color: 'var(--fg-2)' }}
-            >
-              <Download className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">Export</span>
-            </button>
-            <button
-              onClick={() => importInputRef.current?.click()}
-              title="Restore from a backup file"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
-              style={{ background: 'var(--bg-3)', color: 'var(--fg-2)' }}
-            >
-              <Upload className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">Restore</span>
-            </button>
-            <input
-              ref={importInputRef}
-              type="file"
-              accept="application/json,.json"
-              className="hidden"
-              onChange={handleImportFile}
-            />
-
-            <div className="w-px h-6" style={{ background: 'var(--border)' }} />
+            {/* Sync Status Button */}
             <button
               onClick={() => syncToFirestore()}
-              title={
-                syncStatus === 'saved'   ? 'All changes saved' :
-                syncStatus === 'saving'  ? 'Saving changes...' :
-                syncStatus === 'unsaved' ? 'Unsaved changes (auto-save pending)' :
-                                           'Save failed — click to retry'
-              }
-              className="flex items-center gap-2 px-3 py-1.5 text-sm transition-all rounded-lg"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all hover:bg-white/5 shrink-0"
               style={{
                 color:
                   syncStatus === 'saved'   ? '#34d399' :
-                  syncStatus === 'saving'  ? '#fbbf24' :
-                  syncStatus === 'unsaved' ? '#fbbf24' :
+                  syncStatus === 'saving'  || syncStatus === 'unsaved' ? '#fbbf24' :
                                              '#f87171',
-                background:
-                  syncStatus === 'error'   ? 'rgba(248,113,113,0.1)' :
-                  syncStatus === 'unsaved' ? 'rgba(251,191,36,0.08)' :
-                                             'transparent',
               }}
             >
               {syncStatus === 'saved'   && <Check      className="w-4 h-4" />}
-              {syncStatus === 'saving'  && <Loader2    className="w-4 h-4 animate-spin" />}
-              {syncStatus === 'unsaved' && <Circle     className="w-3 h-3 fill-current" />}
+              {(syncStatus === 'saving' || syncStatus === 'unsaved') && <Loader2    className="w-4 h-4 animate-spin" />}
               {syncStatus === 'error'   && <AlertTriangle className="w-4 h-4" />}
-              <span className="text-xs font-bold uppercase tracking-widest">
-                {syncStatus === 'saved'   ? 'Saved' :
-                 syncStatus === 'saving'  ? 'Saving' :
-                 syncStatus === 'unsaved' ? 'Unsaved' :
-                                            'Retry Save'}
+              <span className="text-[10px] font-bold uppercase tracking-widest hidden lg:inline">
+                {syncStatus === 'saved' ? 'Saved' : syncStatus === 'saving' ? 'Saving' : syncStatus === 'unsaved' ? 'Unsaved' : 'Retry'}
               </span>
             </button>
           </div>
@@ -582,10 +599,10 @@ function CanvasInner({ projectId }: { projectId: string }) {
   );
 }
 
-export function Canvas({ projectId }: { projectId: string }) {
+export function Canvas({ projectId, projectName }: { projectId: string, projectName: string }) {
   return (
     <ReactFlowProvider>
-      <CanvasInner projectId={projectId} />
+      <CanvasInner projectId={projectId} projectName={projectName} />
     </ReactFlowProvider>
   );
 }

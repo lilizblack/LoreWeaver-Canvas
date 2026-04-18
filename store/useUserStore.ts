@@ -15,11 +15,14 @@ interface FirebaseConfig {
 interface UserState {
   tier: UserTier;
   customFirebaseConfig: FirebaseConfig | null;
+  weaverProPaymentInfo: { date: number; method: 'stripe' | 'paypal'; transactionId: string } | null;
   setTier: (tier: UserTier) => void;
   setCustomFirebaseConfig: (config: FirebaseConfig | null) => void;
+  setWeaverProPaymentInfo: (info: { date: number; method: 'stripe' | 'paypal'; transactionId: string } | null) => void;
   resetUser: () => void;
   isSettingsOpen: boolean;
-  setSettingsOpen: (open: boolean) => void;
+  settingsTab: 'hosting' | 'billing';
+  setSettingsOpen: (open: boolean, tab?: 'hosting' | 'billing') => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -27,17 +30,21 @@ export const useUserStore = create<UserState>()(
     (set) => ({
       tier: 'spark',
       customFirebaseConfig: null,
+      weaverProPaymentInfo: null,
       setTier: (tier) => set({ tier }),
       setCustomFirebaseConfig: (config) => set({ customFirebaseConfig: config }),
-      resetUser: () => set({ tier: 'spark', customFirebaseConfig: null }),
+      setWeaverProPaymentInfo: (info) => set({ weaverProPaymentInfo: info }),
+      resetUser: () => set({ tier: 'spark', customFirebaseConfig: null, weaverProPaymentInfo: null }),
       isSettingsOpen: false,
-      setSettingsOpen: (open) => set({ isSettingsOpen: open }),
+      settingsTab: 'hosting',
+      setSettingsOpen: (open, tab = 'hosting') => set({ isSettingsOpen: open, settingsTab: tab }),
     }),
     {
       name: 'loreweaver-user-storage',
       partialize: (state) => ({
         tier: state.tier,
         customFirebaseConfig: state.customFirebaseConfig,
+        weaverProPaymentInfo: state.weaverProPaymentInfo,
       }),
     }
   )

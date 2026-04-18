@@ -22,7 +22,7 @@ import { useAuth } from './useAuth';
 
 export function useUserSync() {
   const { user, loading } = useAuth();
-  const { tier, setTier, setCustomFirebaseConfig } = useUserStore();
+  const { tier, setTier, setCustomFirebaseConfig, setWeaverProPaymentInfo } = useUserStore();
 
   useEffect(() => {
     if (loading || !user) return;
@@ -50,6 +50,11 @@ export function useUserSync() {
             setCustomFirebaseConfig(config as any);
             console.log('[UserSync] BYOH config restored from Master Firestore.');
           }
+        }
+
+        // 3. Restore Weaver Pro Payment Info
+        if (data.weaverProPaymentInfo) {
+          setWeaverProPaymentInfo(data.weaverProPaymentInfo);
         }
       } catch (e) {
         console.warn('[UserSync] Could not sync user settings from Master:', e);
