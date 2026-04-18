@@ -6,6 +6,13 @@ import { Image as ImageIcon, FileText, Download } from 'lucide-react';
 
 export const MediaNode = memo(({ data, selected }: NodeProps) => {
   const isImage = data.fileType?.startsWith('image/');
+  const [imgError, setImgError] = React.useState(false);
+  const imageUrl = data.url || data.imageUrl;
+
+  // Reset image error state when url changes
+  React.useEffect(() => {
+    setImgError(false);
+  }, [imageUrl]);
   
   return (
     <div className={`rounded-xl overflow-hidden border-2 transition-all duration-300 ${
@@ -32,11 +39,12 @@ export const MediaNode = memo(({ data, selected }: NodeProps) => {
         style={{ background: data.color || 'var(--accent)' }}
       />
       
-      {(isImage || data.imageUrl) && (data.url || data.imageUrl) ? (
+      {(isImage || data.imageUrl) && imageUrl && !imgError ? (
         <div className="relative group">
           <img 
-            src={data.url || data.imageUrl} 
+            src={imageUrl} 
             alt={data.label} 
+            onError={() => setImgError(true)}
             className="w-full h-32 opacity-90 group-hover:opacity-100 transition-opacity" 
             style={{
               objectFit: data.imagePosition === 'fill' ? 'fill' : data.imagePosition === 'contain' ? 'contain' : 'cover',

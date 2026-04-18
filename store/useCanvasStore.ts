@@ -152,31 +152,40 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     set({ selectedNodeId: id });
   },
 
-  updateNodeData: (id, data) => {
-    const mode = get().canvasMode;
-    const updatedNodes = get().nodes.map((node) => {
-      if (node.id === id) {
-        const updatedNode = { ...node, data: { ...node.data, ...data } };
-
-        // Write-through to the world library so chapters / notes / characters
-        // survive even if the node is later deleted or the canvas goes blank.
-        if (node.type === 'character' && node.data.characterId) {
-          useWorldStore.getState().updateCharacter(node.data.characterId, data);
-        }
-        if (node.type === 'chapter') {
-          useWorldStore.getState().upsertChapter(id, updatedNode.data);
-        }
-        if (node.type === 'note') {
-          useWorldStore.getState().upsertNote(id, updatedNode.data);
-        }
-
-        return updatedNode;
+  updateNodeData: (id, updates) => {
+    // 1. Write-through to the world library (library sync)
+    // This ensuring that changes (including images) are saved even if the node is "isolated"
+    // or on a canvas that isn't currently active.
+    const [type] = id.split('-');
+    const ws = useWorldStore.getState();
+    
+    switch (type) {
+      case 'character': {
+        const node = get().nodes.find(n => n.id === id) || get().mainNodes.find(n => n.id === id);
+        const charId = node?.data?.characterId || id;
+        ws.updateCharacter(charId, updates); 
+        break;
       }
-      return node;
-    });
-    set({
-      nodes: updatedNodes,
-      ...(mode === 'main' ? { mainNodes: updatedNodes } : { loreNodes: updatedNodes })
+      case 'place':   ws.upsertPlace(id, updates);   break;
+      case 'event':   ws.upsertEvent(id, updates);   break;
+      case 'concept': ws.upsertConcept(id, updates); break;
+      case 'item':    ws.upsertItem(id, updates);    break;
+      case 'chapter': ws.upsertChapter(id, updates); break;
+      case 'note':    ws.upsertNote(id, updates);    break;
+    }
+
+    // 2. Update all node lists to ensure total consistency across Main and Lore canvases
+    const updateFn = (arr: Node[]) => arr.map((node) => 
+      node.id === id ? { ...node, data: { ...node.data, ...updates } } : node
+    );
+
+    set((state) => {
+      const newNodes = updateFn(state.nodes);
+      return {
+        nodes: newNodes,
+        mainNodes: updateFn(state.mainNodes),
+        loreNodes: updateFn(state.loreNodes),
+      };
     });
   },
 

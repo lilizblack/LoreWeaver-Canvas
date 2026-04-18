@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from 'next/link';
 import { 
   Shield, 
   ChevronRight, 
@@ -79,11 +80,7 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (user && !loading) {
-      router.push("/dashboard");
-    }
-  }, [user, loading, router]);
+  // Automatic redirect removed to allow authenticated users to view landing page
 
   if (loading) return null;
 
@@ -98,24 +95,34 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-4 bg-[#050505]/90 backdrop-blur-xl border-b border-white/[0.05]' : 'py-8 bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <Link href="/" className="flex items-center gap-4 group cursor-pointer">
             <BrandLogo className="w-9 h-9" />
             <span className="text-2xl font-serif font-bold tracking-tight text-white hidden sm:block">Loreweaver</span>
-          </div>
+          </Link>
           
           <div className="flex items-center gap-4 md:gap-10">
             <div className="hidden lg:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
-              <a href="#canvas" className="hover:text-white transition-colors">The Canvas</a>
-              <a href="#grimoire" className="hover:text-white transition-colors">The Grimoire</a>
-              <a href="#tiers" className="hover:text-white transition-colors">Sovereignty</a>
-            </div>
+               <a href="#canvas" className="hover:text-white transition-colors">The Canvas</a>
+               <a href="#grimoire" className="hover:text-white transition-colors">The Grimoire</a>
+               <a href="#tiers" className="hover:text-white transition-colors">Sovereignty</a>
+               {user && <Link href="/dashboard" className="text-purple-400 hover:text-purple-300 transition-colors">Dashboard</Link>}
+             </div>
             
-            <button 
-              onClick={loginWithGoogle}
-              className="px-8 py-3 rounded-full bg-white/[0.03] border border-white/[0.08] text-[11px] font-black uppercase tracking-[0.1em] text-white hover:bg-white/[0.08] hover:border-white/[0.15] transition-all"
-            >
-              Enter the Realm
-            </button>
+            {user ? (
+              <Link 
+                href="/dashboard"
+                className="px-8 py-3 rounded-full bg-purple-600/20 border border-purple-500/30 text-[11px] font-black uppercase tracking-[0.1em] text-white hover:bg-purple-600/30 hover:border-purple-500/50 transition-all shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <button 
+                onClick={loginWithGoogle}
+                className="px-8 py-3 rounded-full bg-white/[0.03] border border-white/[0.08] text-[11px] font-black uppercase tracking-[0.1em] text-white hover:bg-white/[0.08] hover:border-white/[0.15] transition-all"
+              >
+                Enter the Realm
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -487,10 +494,11 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-32 border-t border-white/[0.03]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-16">
-          <div className="flex items-center gap-6">
-             <BrandLogo className="w-8 h-8" />
-             <span className="text-2xl font-serif font-bold text-white tracking-tighter">Loreweaver</span>
-          </div>
+          <Link href="/" className="flex items-center gap-2 pr-2 group/logo hover:opacity-80 transition-opacity">
+            <BrandLogo className="w-8 h-8" />
+            <div className="w-px h-4 bg-white/10 mx-1" />
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none group-hover/logo:text-zinc-300 transition-colors">Loreweaver</span>
+          </Link>
           
           <div className="flex flex-col items-center md:items-end gap-6">
             <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">

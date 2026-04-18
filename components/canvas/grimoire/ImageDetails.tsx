@@ -16,6 +16,13 @@ interface ImageDetailsProps {
 }
 
 export function ImageDetails({ nodeId, data, updateNodeData, isUploading, onImageUpload }: ImageDetailsProps) {
+  const [imgError, setImgError] = React.useState(false);
+
+  // Reset image error state when imageUrl changes
+  React.useEffect(() => {
+    setImgError(false);
+  }, [data.imageUrl]);
+
   const labelField   = useField(nodeId, data.label,   'label',   updateNodeData, { maxWords: 200 });
   const captionField = useField(nodeId, data.caption, 'caption', updateNodeData, { maxWords: 200 });
 
@@ -28,14 +35,19 @@ export function ImageDetails({ nodeId, data, updateNodeData, isUploading, onImag
       <div className="space-y-2">
         <label className={labelCls}>Image Source</label>
         <div className="relative group aspect-video rounded-xl border overflow-hidden flex flex-col items-center justify-center border-dashed" style={{ background: 'var(--bg-3)', borderColor: 'var(--border)' }}>
-          {data.imageUrl
-            ? <img src={data.imageUrl} className="w-full h-full" alt="content" style={{
-                objectFit: data.objectPosition === 'fill' ? 'fill' : data.objectPosition === 'contain' ? 'contain' : 'cover',
-                objectPosition: ['contain', 'fill'].includes(data.objectPosition) ? 'center' : (data.objectPosition || 'center')
-              }} />
+          {data.imageUrl && !imgError
+            ? <img 
+                src={data.imageUrl} 
+                className="w-full h-full" 
+                alt="content"
+                onError={() => setImgError(true)}
+                style={{
+                  objectFit: data.objectPosition === 'fill' ? 'fill' : data.objectPosition === 'contain' ? 'contain' : 'cover',
+                  objectPosition: ['contain', 'fill'].includes(data.objectPosition) ? 'center' : (data.objectPosition || 'center')
+                }} />
             : <div className="text-center p-4">
                 <Upload className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--fg-3)' }} />
-                <p className="text-[10px]" style={{ color: 'var(--fg-3)' }}>Upload PNG or JPG</p>
+                <p className="text-[10px]" style={{ color: 'var(--fg-3)' }}>{imgError ? 'Failed to load image' : 'Upload PNG or JPG'}</p>
               </div>
           }
           <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={onImageUpload} disabled={isUploading} />

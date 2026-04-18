@@ -29,6 +29,7 @@ import { MediaNode } from './nodes/MediaNode';
 import { ShapeNode } from './nodes/ShapeNode';
 import { ConceptNode } from './nodes/ConceptNode';
 import { ItemNode } from './nodes/ItemNode';
+import { SettingsModal } from '../SettingsModal';
 
 import { GrimoirePanel } from './GrimoirePanel';
 import { CharacterModal } from '../world/CharacterModal';
@@ -595,6 +596,8 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
         onClose={() => setNotesLibOpen(false)}
         kind="note"
       />
+
+      <SettingsModal />
     </div>
   );
 }

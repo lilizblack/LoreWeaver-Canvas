@@ -118,18 +118,20 @@ export function useLoreSync(projectId: string = 'default-project') {
           // Sync World Data
           const toObj = (val: any) => {
             if (Array.isArray(val)) {
-              return Object.fromEntries(val.filter(x => x && x.id).map(x => [x.id, x]));
+              return Object.fromEntries(val.filter((x: any) => x && x.id).map((x: any) => [x.id, x]));
             }
             return val || {};
           };
 
-          if (data.characters) useWorldStore.getState().setCharacters(toObj(data.characters));
-          if (data.chapters)   useWorldStore.getState().setChapters(toObj(data.chapters));
-          if (data.notes)      useWorldStore.getState().setNotes(toObj(data.notes));
-          if (data.items)      useWorldStore.getState().setItems(toObj(data.items));
-          if (data.places)     useWorldStore.getState().setPlaces(toObj(data.places));
-          if (data.events)     useWorldStore.getState().setEvents(toObj(data.events));
-          if (data.concepts)   useWorldStore.getState().setConcepts(toObj(data.concepts));
+          useWorldStore.getState().setWorldState({
+            characters: toObj(data.characters),
+            chapters: toObj(data.chapters),
+            notes: toObj(data.notes),
+            items: toObj(data.items),
+            places: toObj(data.places),
+            events: toObj(data.events),
+            concepts: toObj(data.concepts),
+          });
 
           setSyncStatus('saved');
         }
@@ -282,18 +284,20 @@ export function useLoreSync(projectId: string = 'default-project') {
       const w = data.world || data;
       const toObj = (val: any) => {
         if (Array.isArray(val)) {
-          return Object.fromEntries(val.filter(x => x && x.id).map(x => [x.id, x]));
+          return Object.fromEntries(val.filter((x: any) => x && x.id).map((x: any) => [x.id, x]));
         }
         return val || {};
       };
 
-      if (w.characters) world.setCharacters(toObj(w.characters));
-      if (w.chapters)   world.setChapters(toObj(w.chapters));
-      if (w.notes)      world.setNotes(toObj(w.notes));
-      if (w.items)      world.setItems(toObj(w.items));
-      if (w.places)     world.setPlaces(toObj(w.places));
-      if (w.events)     world.setEvents(toObj(w.events));
-      if (w.concepts)   world.setConcepts(toObj(w.concepts));
+      world.setWorldState({
+        characters: toObj(w.characters),
+        chapters: toObj(w.chapters),
+        notes: toObj(w.notes),
+        items: toObj(w.items),
+        places: toObj(w.places),
+        events: toObj(w.events),
+        concepts: toObj(w.concepts),
+      });
 
       // Reset the local hash to ensure the save effect sees this as a change
       lastProjectHash.current = '';

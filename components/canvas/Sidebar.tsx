@@ -8,7 +8,8 @@ import {
   User, BookOpen, StickyNote, Image, Plus,
   Sun, Moon, Circle, Square, Star, ArrowRight,
   Triangle, ChevronDown, ChevronUp, Hexagon,
-  AArrowUp, AArrowDown, Type, Scroll, Gem, FileText
+  AArrowUp, AArrowDown, Type, Scroll, Gem, FileText,
+  MapPin, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Node } from 'reactflow';
@@ -150,10 +151,10 @@ export function Sidebar({ projectName }: { projectName: string }) {
   ];
 
   const loreTemplates = [
-    { type: 'place',     label: 'Place',           icon: User,      color: isDark ? '#2dd4bf' : '#0891b2', bg: isDark ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.15)' },
-    { type: 'event',     label: 'Timeline Event',  icon: BookOpen,  color: isDark ? '#f472b6' : '#db2777', bg: isDark ? 'rgba(219,39,119,0.12)' : 'rgba(219,39,119,0.15)' },
+    { type: 'place',     label: 'Place',           icon: MapPin,    color: isDark ? '#2dd4bf' : '#0891b2', bg: isDark ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.15)' },
+    { type: 'event',     label: 'Timeline Event',  icon: Calendar,  color: isDark ? '#f472b6' : '#db2777', bg: isDark ? 'rgba(219,39,119,0.12)' : 'rgba(219,39,119,0.15)' },
     { type: 'concept',   label: 'Concept / Term',  icon: Scroll,    color: isDark ? '#fbbf24' : '#d97706', bg: isDark ? 'rgba(217,119,6,0.12)'  : 'rgba(217,119,6,0.15)'  },
-    { type: 'item',      label: 'Item / Artifact',  icon: Gem,       color: isDark ? '#fb7185' : '#e11d48', bg: isDark ? 'rgba(225,29,72,0.12)'  : 'rgba(225,29,72,0.15)'  },
+    { type: 'item',      label: 'Item / Artifact', icon: Gem,       color: isDark ? '#fb7185' : '#e11d48', bg: isDark ? 'rgba(225,29,72,0.12)'  : 'rgba(225,29,72,0.15)'  },
     { type: 'note',      label: 'Notes',           icon: StickyNote,color: isDark ? '#34d399' : '#059669', bg: isDark ? 'rgba(5,150,105,0.12)' : 'rgba(5,150,105,0.15)'  },
     { type: 'image',     label: 'Images',          icon: Image,     color: isDark ? '#60a5fa' : '#2563eb', bg: isDark ? 'rgba(37,99,235,0.12)' : 'rgba(37,99,235,0.15)'  },
   ];
@@ -186,11 +187,11 @@ export function Sidebar({ projectName }: { projectName: string }) {
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           </Link>
-          <div className="flex items-center gap-2 pr-2">
+          <Link href="/" className="flex items-center gap-2 pr-2 group/logo hover:opacity-80 transition-opacity">
             <BrandLogo className="w-8 h-8" withGlow={false} />
             <div className="w-px h-4 bg-white/10 mx-1" />
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">Loreweaver</span>
-          </div>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none group-hover/logo:text-zinc-300 transition-colors">Loreweaver</span>
+          </Link>
         </div>
 
         <div className="px-1">

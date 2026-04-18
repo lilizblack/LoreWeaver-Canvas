@@ -10,6 +10,12 @@ export const PlaceNode = memo(({ data, selected, id }: NodeProps) => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const { updateNodeData } = useCanvasStore();
+  const [imgError, setImgError] = React.useState(false);
+
+  // Reset image error state when imageUrl changes
+  React.useEffect(() => {
+    setImgError(false);
+  }, [data.imageUrl]);
 
   return (
     <div className={`relative group transition-all duration-300 ${selected ? 'scale-105' : ''}`}>
@@ -29,10 +35,11 @@ export const PlaceNode = memo(({ data, selected, id }: NodeProps) => {
       >
         {/* Header/Image Area */}
         <div className="relative h-32 bg-zinc-800/50 flex items-center justify-center overflow-hidden">
-          {data.imageUrl ? (
+          {data.imageUrl && !imgError ? (
             <img
               src={data.imageUrl}
               alt={data.name}
+              onError={() => setImgError(true)}
               className="w-full h-full"
               style={{
                 objectFit: data.imagePosition === 'fill' ? 'fill' : data.imagePosition === 'contain' ? 'contain' : 'cover',
