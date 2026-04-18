@@ -2,7 +2,7 @@
 
 LoreWeaver is a premium, professional-grade world-building workshop for novelists and storytellers. Built with **Next.js 15**, **React Flow**, and **Firebase**, it provides an interactive canvas to map out complex narratives, characters, and lore.
 
-![Dashboard Preview](https://your-preview-link.com/preview.png)
+![Dashboard Preview](https://loreweaver-9f42a.firebasestorage.app/Screeshots/Main canvas.png)
 
 ## 🎨 Core Features
 
