@@ -10,7 +10,6 @@ import { Book, Plus, Settings, LogOut, Loader2, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useUserStore } from "@/store/useUserStore";
-import { SettingsModal } from "@/components/SettingsModal";
 import { Suspense } from "react";
 
 interface Project {
@@ -254,7 +253,6 @@ function DashboardContent() {
           </div>
         )}
       </AnimatePresence>
-      <SettingsModal />
     </div>
   );
 }

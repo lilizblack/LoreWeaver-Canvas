@@ -4,7 +4,7 @@ import React from 'react';
 import { Palette, Clock } from 'lucide-react';
 import { 
   labelCls, inputCls, textareaCls, 
-  ColorPicker, FontSizeControl, useField, ReferencedInSection 
+  ColorPicker, FontSizeControl, useField, ReferencedInSection, WordCounter 
 } from './GrimoireShared';
 
 interface EventDetailsProps {
@@ -34,17 +34,20 @@ export function EventDetails({ nodeId, data, updateNodeData }: EventDetailsProps
 
       <div className="space-y-1.5">
         <label className={labelCls}>Event Title</label>
-        <input type="text" {...nameField} placeholder="Historical marker..." className={inputCls} />
+        <input type="text" {...nameField.props} placeholder="Historical marker..." className={inputCls} />
+        <WordCounter count={nameField.meta.wordCount} limit={200} />
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}><Clock className="w-3 h-3" /> Timestamp / Era</label>
-        <input type="text" {...timeField} placeholder="e.g. 403 AF, Second Era..." className={inputCls} />
+        <input type="text" {...timeField.props} placeholder="e.g. 403 AF, Second Era..." className={inputCls} />
+        <WordCounter count={timeField.meta.wordCount} limit={200} />
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}>Description</label>
-        <textarea {...descField} rows={6} className={textareaCls} placeholder="What occurred?" />
+        <textarea {...descField.props} rows={6} className={textareaCls} placeholder="What occurred?" />
+        <WordCounter count={descField.meta.wordCount} limit={200} />
       </div>
 
       <div className="w-full h-px" style={{ background: 'var(--border)' }} />

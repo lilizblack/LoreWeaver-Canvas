@@ -5,7 +5,7 @@ import { BookOpen, Palette, Sparkles, AlertCircle, MapPin, ChevronDown, User, Us
 import { useCanvasStore } from '@/store/useCanvasStore';
 import { 
   labelCls, inputCls, textareaCls, 
-  ColorPicker, FontSizeControl, useField, ReferencedInSection 
+  ColorPicker, FontSizeControl, useField, ReferencedInSection, WordCounter 
 } from './GrimoireShared';
 
 interface ChapterDetailsProps {
@@ -48,23 +48,25 @@ export function ChapterDetails({ nodeId, data, updateNodeData }: ChapterDetailsP
 
       <div className="space-y-1.5">
         <label className={labelCls}>Chapter Title</label>
-        <input type="text" {...nameField} placeholder="Chapter name..." className={inputCls} />
+        <input type="text" {...nameField.props} placeholder="Chapter name..." className={inputCls} />
+        <WordCounter count={nameField.meta.wordCount} limit={200} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className={labelCls}>Chapter #</label>
-          <input type="text" {...chapterNumField} placeholder="1" className={inputCls} />
+          <input type="text" {...chapterNumField.props} placeholder="1" className={inputCls} />
         </div>
         <div className="space-y-1.5">
           <label className={labelCls}>Length (Est)</label>
-          <input type="number" {...wordCountField} placeholder="0" className={inputCls} />
+          <input type="number" {...wordCountField.props} placeholder="0" className={inputCls} />
         </div>
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}>Chapter Summary</label>
-        <textarea {...summaryField} rows={4} className={`${textareaCls} italic`} placeholder="Plot beats..." />
+        <textarea {...summaryField.props} rows={4} className={`${textareaCls} italic`} placeholder="Brief summary of the chapter..." />
+        <WordCounter count={summaryField.meta.wordCount} limit={500} />
       </div>
 
       <div className="space-y-1.5">
@@ -122,12 +124,14 @@ export function ChapterDetails({ nodeId, data, updateNodeData }: ChapterDetailsP
 
       <div className="space-y-1.5">
         <label className={labelCls}><AlertCircle className="w-3 h-3 text-rose-500" /> Pending Hooks</label>
-        <textarea {...threadsField} rows={3} className={textareaCls} placeholder="Unresolved plot threads, mysteries..." />
+        <textarea {...threadsField.props} rows={3} className={textareaCls} placeholder="Unresolved plot threads, mysteries..." />
+        <WordCounter count={threadsField.meta.wordCount} limit={200} />
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}><MapPin className="w-3 h-3 text-cyan-500" /> World Building Elements</label>
-        <textarea {...worldBuildingField} rows={3} className={textareaCls} placeholder="Lore, locations, magic systems..." />
+        <textarea {...worldBuildingField.props} rows={3} className={textareaCls} placeholder="Lore, locations, magic systems..." />
+        <WordCounter count={worldBuildingField.meta.wordCount} limit={200} />
       </div>
 
       <div className="w-full h-px" style={{ background: 'var(--border)' }} />

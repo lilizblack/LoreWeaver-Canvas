@@ -4,7 +4,7 @@ import React from 'react';
 import { Palette } from 'lucide-react';
 import { 
   labelCls, inputCls, textareaCls, 
-  ColorPicker, FontSizeControl, useField, ReferencedInSection 
+  ColorPicker, FontSizeControl, useField, ReferencedInSection, WordCounter 
 } from './GrimoireShared';
 
 interface ConceptDetailsProps {
@@ -14,8 +14,8 @@ interface ConceptDetailsProps {
 }
 
 export function ConceptDetails({ nodeId, data, updateNodeData }: ConceptDetailsProps) {
-  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 300 });
-  const detailsField = useField(nodeId, data.details, 'details', updateNodeData, { maxWords: 300 });
+  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 200 });
+  const detailsField = useField(nodeId, data.details, 'details', updateNodeData, { maxWords: 200 });
 
   const handleSelect = (key: string, value: any) => {
     updateNodeData(nodeId, { [key]: value });
@@ -33,12 +33,14 @@ export function ConceptDetails({ nodeId, data, updateNodeData }: ConceptDetailsP
 
       <div className="space-y-1.5">
         <label className={labelCls}>Concept / Magic Name</label>
-        <input type="text" {...nameField} placeholder="e.g. The Weave, Ether..." className={inputCls} />
+        <input type="text" {...nameField.props} placeholder="e.g. The Weave, Ether..." className={inputCls} />
+        <WordCounter count={nameField.meta.wordCount} limit={200} />
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}>Technical Details</label>
-        <textarea {...detailsField} rows={8} className={textareaCls} placeholder="Rules, mechanics, philosophy..." />
+        <textarea {...detailsField.props} rows={8} className={textareaCls} placeholder="Rules, mechanics, philosophy..." />
+        <WordCounter count={detailsField.meta.wordCount} limit={200} />
       </div>
 
       <div className="w-full h-px" style={{ background: 'var(--border)' }} />

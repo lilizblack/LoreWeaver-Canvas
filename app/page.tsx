@@ -30,7 +30,7 @@ const fadeInUp = {
   initial: { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-100px" },
-  transition: { duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }
+  transition: { duration: 0.8, ease: "easeInOut" }
 };
 
 const staggerContainer = {
@@ -50,19 +50,24 @@ const floatAnimation = {
 };
 
 // --- Custom Components ---
-const FeatureCard = ({ iconPath: Icon, title, description, badge }: { iconPath: any, title: string, description: string, badge?: string }) => (
+const FeatureCard = ({ iconPath: Icon, title, description, badge, imageUrl }: { iconPath: any, title: string, description: string, badge?: string, imageUrl?: string }) => (
   <motion.div 
     variants={fadeInUp}
-    className="relative p-8 rounded-[32px] bg-[#0d0d0f] border border-white/[0.03] hover:border-purple-500/30 transition-all duration-500 group overflow-hidden"
+    className="relative p-8 rounded-[32px] bg-[var(--bg-2)] border border-white/[0.03] hover:border-[var(--primary)]/30 transition-all duration-500 group overflow-hidden flex flex-col h-full"
   >
-    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-    <div className="relative z-10">
-      <div className="mb-6 h-14 w-14 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:bg-[#4C1D95]/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-        <Icon className="w-7 h-7 text-[#4C1D95]" />
+    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="relative z-10 flex flex-col h-full">
+      {imageUrl && (
+        <div className="mb-8 aspect-video rounded-2xl overflow-hidden border border-white/[0.05] bg-black/40">
+           <img src={imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={title} />
+        </div>
+      )}
+      <div className="mb-6 h-14 w-14 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:bg-[var(--primary)]/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+        <Icon className="w-7 h-7 text-[var(--primary)]" />
       </div>
       {badge && <span className="text-[10px] font-black uppercase tracking-widest text-[#d4af37] mb-4 block">{badge}</span>}
       <h3 className="text-xl font-serif font-bold mb-4 text-white group-hover:text-purple-200 transition-colors">{title}</h3>
-      <p className="text-zinc-500 text-sm leading-relaxed group-hover:text-zinc-400 transition-colors font-medium">
+      <p className="text-zinc-500 text-sm leading-relaxed group-hover:text-zinc-400 transition-colors font-medium flex-1">
         {description}
       </p>
     </div>
@@ -208,9 +213,9 @@ export default function LandingPage() {
           className="w-full max-w-6xl mt-20 relative px-4"
         >
           <div className="aspect-[16/9] md:aspect-[21/9] rounded-[48px] bg-[#0d0d0f] border border-white/[0.05] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden relative group">
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10 opacity-60" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)] via-transparent to-transparent z-10 opacity-60" />
             <img 
-              src="/images/hero-dashboard-v2.png" 
+              src="/images/branding-main.png" 
               alt="Loreweaver Dashboard Workspace" 
               className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-[2000ms]"
             />
@@ -244,24 +249,28 @@ export default function LandingPage() {
               title="The Lore Canvas"
               description="A spatial canvas to drop character cards, place markers, and plot notes. Architect your chronology in a truly visual database."
               badge="Visual Database"
+              imageUrl="/images/feat-canvas.png"
             />
             <FeatureCard 
               iconPath={Link2}
               title="Intelligent Linking"
               description="Never lose a detail. Use '@' to instantly link terms, items, or locations across your chapters. Lore Weaver tracks every mention automatically."
               badge="Smart @ Mentions"
+              imageUrl="/images/feat-linking.png"
             />
             <FeatureCard 
               iconPath={GitBranch}
               title="Relationship Threads"
               description="Visualize the heart of your story. Draw lines between character cards and color-code them by relationship type (Ally, Enemy, Rival)."
               badge="Color-Coded Heritage"
+              imageUrl="/images/feat-linking.png" /* Swapped mapping the web of fate image to the one in every mention accounted for */
             />
             <FeatureCard 
               iconPath={Layers}
               title="Dual-View System"
               description="Switch instantly between your Main Canvas (Chapters) and your Lore Canvas (The Encyclopedia) to keep your writing flow uninterrupted."
               badge="Unbroken Flow"
+              imageUrl="/images/feat-dualview.png"
             />
           </motion.div>
         </div>
@@ -310,7 +319,7 @@ export default function LandingPage() {
                 <div className="relative z-10 w-full h-full rounded-[60px] border border-white/[0.05] bg-[#0d0d0f] flex items-center justify-center overflow-hidden shadow-2xl">
                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent z-10" />
                    <img 
-                     src="/images/character-architecture.png" 
+                     src="/images/narrative-arch.png" 
                      alt="Loreweaver Character Architecture" 
                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                    />
@@ -470,12 +479,16 @@ export default function LandingPage() {
       <section className="py-20 px-6">
         <motion.div 
           {...fadeInUp}
-          className="max-w-5xl mx-auto p-16 md:p-24 rounded-[60px] bg-gradient-to-br from-[#0d0d0f] to-[#050505] border border-white/[0.03] relative text-center overflow-hidden"
+          className="max-w-5xl mx-auto p-16 md:p-24 rounded-[60px] bg-gradient-to-br from-[var(--bg-2)] to-[var(--bg)] border border-white/[0.03] relative text-center overflow-hidden"
         >
            <div className="absolute inset-0 bg-purple-900/5 blur-[100px] rounded-full pointer-events-none" />
-           <div className="relative z-10">
+           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 opacity-40">
+              <img src="/images/persistence-vault.png" className="w-full h-full object-cover object-top" alt="Vault Security" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--bg-2)]" />
+           </div>
+           <div className="relative z-10 pt-40">
               <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.05] w-fit mx-auto mb-12">
-                 <Database className="w-10 h-10 text-[#4C1D95]" />
+                 <Database className="w-10 h-10 text-[var(--primary)]" />
               </div>
               <h2 className="text-4xl md:text-6xl font-serif mb-10 text-white tracking-tight leading-tight">Data Sovereignty is <br /> the new standard.</h2>
               <p className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed mb-16 font-medium">

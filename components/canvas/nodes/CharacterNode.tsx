@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { User, Heart } from 'lucide-react';
 import { useWorldStore } from '@/store/useWorldStore';
@@ -17,14 +17,9 @@ export const CharacterNode = memo(({ data, selected }: NodeProps) => {
   const name          = character?.name          ?? data.name          ?? 'Anonymous';
   const characterType = data.characterType       ?? 'Protagonist';
   const roleColor     = getRoleColor(characterType);
-  const imageUrl      = (character?.imageUrl || data.imageUrl) || '';
+  const imageUrl      = character?.imageUrl      ?? data.imageUrl;
   const sex           = character?.sex           ?? data.sex;
   const threads = (character as any)?.threads ?? data.threads ?? [];
-
-  // Reset image error state when imageUrl changes
-  useEffect(() => {
-    setImgError(false);
-  }, [imageUrl]);
 
   return (
     <div className="relative" style={{ width: 260 }}>

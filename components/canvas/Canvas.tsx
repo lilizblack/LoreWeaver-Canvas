@@ -29,7 +29,6 @@ import { MediaNode } from './nodes/MediaNode';
 import { ShapeNode } from './nodes/ShapeNode';
 import { ConceptNode } from './nodes/ConceptNode';
 import { ItemNode } from './nodes/ItemNode';
-import { SettingsModal } from '../SettingsModal';
 
 import { GrimoirePanel } from './GrimoirePanel';
 import { CharacterModal } from '../world/CharacterModal';
@@ -99,6 +98,10 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [chaptersLibOpen, setChaptersLibOpen] = React.useState(false);
   const [notesLibOpen, setNotesLibOpen] = React.useState(false);
+  const [placesLibOpen, setPlacesLibOpen] = React.useState(false);
+  const [eventsLibOpen, setEventsLibOpen] = React.useState(false);
+  const [conceptsLibOpen, setConceptsLibOpen] = React.useState(false);
+  const [itemsLibOpen, setItemsLibOpen] = React.useState(false);
   const characters = useWorldStore((state) => state.characters);
   const chapters = useWorldStore((state) => state.chapters);
   const worldNotes = useWorldStore((state) => state.notes);
@@ -426,6 +429,52 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
                     </div>
                     <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-lg border border-emerald-500/10">{noteCount}</span>
                   </button>
+
+                  <div className="h-px bg-white/5 my-1" />
+
+                  <button 
+                    onClick={() => setPlacesLibOpen(true)}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-4 h-4 text-blue-400" />
+                      <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Places</span>
+                    </div>
+                    <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-lg border border-blue-500/10">{Object.keys(places).length}</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setEventsLibOpen(true)}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-violet-400" />
+                      <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Events</span>
+                    </div>
+                    <span className="text-[10px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg border border-violet-500/10">{Object.keys(events).length}</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setConceptsLibOpen(true)}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Scroll className="w-4 h-4 text-orange-400" />
+                      <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Concepts</span>
+                    </div>
+                    <span className="text-[10px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-lg border border-orange-500/10">{Object.keys(concepts).length}</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setItemsLibOpen(true)}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Gem className="w-4 h-4 text-rose-400" />
+                      <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Items</span>
+                    </div>
+                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-lg border border-rose-500/10">{Object.keys(items).length}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -597,7 +646,37 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
         kind="note"
       />
 
-      <SettingsModal />
+      <LibraryModal
+        isOpen={placesLibOpen}
+        onClose={() => setPlacesLibOpen(false)}
+        kind="place"
+      />
+
+      <LibraryModal
+        isOpen={eventsLibOpen}
+        onClose={() => setEventsLibOpen(false)}
+        kind="event"
+      />
+
+      <LibraryModal
+        isOpen={conceptsLibOpen}
+        onClose={() => setConceptsLibOpen(false)}
+        kind="concept"
+      />
+
+      <LibraryModal
+        isOpen={itemsLibOpen}
+        onClose={() => setItemsLibOpen(false)}
+        kind="item"
+      />
+
+      <input 
+        type="file" 
+        ref={importInputRef} 
+        onChange={handleImportFile} 
+        style={{ display: 'none' }} 
+        accept=".json"
+      />
     </div>
   );
 }

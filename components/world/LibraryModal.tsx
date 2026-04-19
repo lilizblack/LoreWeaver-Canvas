@@ -2,13 +2,13 @@
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trash2, Plus, Search, Eye, BookOpen, StickyNote } from "lucide-react";
-import { useWorldStore, ChapterRecord, NoteRecord } from "@/store/useWorldStore";
+import { X, Trash2, Plus, Search, Eye, BookOpen, StickyNote, MapPin, Calendar, Scroll, Gem } from "lucide-react";
+import { useWorldStore, ChapterRecord, NoteRecord, PlaceRecord, EventRecord, ConceptRecord, ItemRecord } from "@/store/useWorldStore";
 import { useCanvasStore } from "@/store/useCanvasStore";
 import { useUserStore } from "@/store/useUserStore";
 import { Node } from "reactflow";
 
-type Kind = 'chapter' | 'note';
+type Kind = 'chapter' | 'note' | 'place' | 'event' | 'concept' | 'item';
 
 interface Props {
   isOpen: boolean;
@@ -18,7 +18,7 @@ interface Props {
 
 const KIND_META = {
   chapter: {
-    title: 'Chapter Notes Library',
+    title: 'Chapter Notes',
     subtitle: 'All your chapter notes — saved forever, even when the canvas is empty.',
     icon: BookOpen,
     color: '#f59e0b',
@@ -26,54 +26,102 @@ const KIND_META = {
     addLabel: 'New Chapter Note',
   },
   note: {
-    title: 'Notes Library',
+    title: 'Notes',
     subtitle: 'Your collected notes — preserved independently of the canvas.',
     icon: StickyNote,
     color: '#10b981',
     placeholder: 'Search notes...',
     addLabel: 'New Note',
   },
+  place: {
+    title: 'Places',
+    subtitle: 'Locales and regions of your world.',
+    icon: MapPin,
+    color: '#0891b2',
+    placeholder: 'Search places...',
+    addLabel: 'New Place',
+  },
+  event: {
+    title: 'Events',
+    subtitle: 'Key occurrences in your timeline.',
+    icon: Calendar,
+    color: '#6d28d9',
+    placeholder: 'Search events...',
+    addLabel: 'New Event',
+  },
+  concept: {
+    title: 'Concepts',
+    subtitle: 'Magic systems, cultures, and philosophies.',
+    icon: Scroll,
+    color: '#d97706',
+    placeholder: 'Search concepts...',
+    addLabel: 'New Concept',
+  },
+  item: {
+    title: 'Items',
+    subtitle: 'Relics, artifacts, and mundane tools.',
+    icon: Gem,
+    color: '#e11d48',
+    placeholder: 'Search items...',
+    addLabel: 'New Item',
+  },
 } as const;
 
-function getTitle(rec: ChapterRecord | NoteRecord, kind: Kind): string {
-  if (kind === 'chapter') {
-    const c = rec as ChapterRecord;
-    return (c as any).title || c.name || 'Untitled Chapter';
-  }
-  const n = rec as NoteRecord;
-  return n.label || 'Untitled Note';
+function getTitle(rec: any, kind: Kind): string {
+  if (kind === 'chapter') return rec.title || rec.name || 'Untitled Chapter';
+  if (kind === 'note') return rec.label || 'Untitled Note';
+  return rec.name || 'Untitled ' + kind;
 }
 
-function getPreview(rec: ChapterRecord | NoteRecord, kind: Kind): string {
-  if (kind === 'chapter') {
-    const c = rec as ChapterRecord;
-    return c.summary || (c as any).beats || (c as any).worldBuilding || '';
-  }
-  const n = rec as NoteRecord;
-  return (n.content || '').replace(/<[^>]+>/g, ' ').trim();
+function getPreview(rec: any, kind: Kind): string {
+  if (kind === 'chapter') return rec.summary || rec.beats || rec.worldBuilding || '';
+  if (kind === 'note') return (rec.content || '').replace(/<[^>]+>/g, ' ').trim();
+  return rec.description || rec.category || rec.itemType || '';
 }
 
 export function LibraryModal({ isOpen, onClose, kind }: Props) {
   const meta = KIND_META[kind];
   const Icon = meta.icon;
 
-  const chapters = useWorldStore((s) => s.chapters);
-  const notes    = useWorldStore((s) => s.notes);
-  const deleteChapter = useWorldStore((s) => s.deleteChapter);
-  const deleteNote    = useWorldStore((s) => s.deleteNote);
-  const upsertChapter = useWorldStore((s) => s.upsertChapter);
-  const upsertNote    = useWorldStore((s) => s.upsertNote);
+  const ws = useWorldStore();
+  const records = useMemo(() => {
+    if (kind === 'chapter') return ws.chapters;
+    if (kind === 'note')    return ws.notes;
+    if (kind === 'place')   return ws.places;
+    if (kind === 'event')   return ws.events;
+    if (kind === 'concept') return ws.concepts;
+    if (kind === 'item')    return ws.items;
+    return {};
+  }, [ws, kind]);
+
+  const deleteRecord = (id: string) => {
+    if (kind === 'chapter') ws.deleteChapter(id);
+    else if (kind === 'note')    ws.deleteNote(id);
+    else if (kind === 'place')   ws.deletePlace(id);
+    else if (kind === 'event')   ws.deleteEvent(id);
+    else if (kind === 'concept') ws.deleteConcept(id);
+    else if (kind === 'item')    ws.deleteItem(id);
+  };
+
+  const upsertRecord = (id: string, data: any) => {
+    if (kind === 'chapter') ws.upsertChapter(id, data);
+    else if (kind === 'note')    ws.upsertNote(id, data);
+    else if (kind === 'place')   ws.upsertPlace(id, data);
+    else if (kind === 'event')   ws.upsertEvent(id, data);
+    else if (kind === 'concept') ws.upsertConcept(id, data);
+    else if (kind === 'item')    ws.upsertItem(id, data);
+  };
   const { tier, setSettingsOpen } = useUserStore();
 
+  const loreNodes = useCanvasStore((s) => s.loreNodes);
   const mainNodes = useCanvasStore((s) => s.mainNodes);
   const addNode   = useCanvasStore((s) => s.addNode);
   const setSelectedNodeId = useCanvasStore((s) => s.setSelectedNodeId);
   const setCanvasMode     = useCanvasStore((s) => s.setCanvasMode);
+  const canvasMode        = useCanvasStore((s) => s.canvasMode);
 
   const [search, setSearch] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
-  const records = kind === 'chapter' ? chapters : notes;
 
   const list = useMemo(() => {
     const arr = Object.values(records);
@@ -89,7 +137,10 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
 
   if (!isOpen) return null;
 
-  const isOnCanvas = (id: string) => mainNodes.some(n => n.id === id);
+  const isOnCanvas = (id: string) => {
+    const allNodes = [...mainNodes, ...loreNodes];
+    return allNodes.some(n => n.id === id);
+  };
 
   const focusOnCanvas = (id: string) => {
     setCanvasMode('main');
@@ -97,36 +148,30 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
     onClose();
   };
 
-  const restoreToCanvas = (rec: ChapterRecord | NoteRecord) => {
-    // Recreate the node on the Main canvas with the saved data.
+  const restoreToCanvas = (rec: any) => {
+    const isMainType = kind === 'chapter' || kind === 'note';
+    const targetMode = isMainType ? 'main' : 'lore';
+    
     const base: Node = {
       id: rec.id,
       type: kind,
       position: { x: 200 + Math.random() * 300, y: 200 + Math.random() * 200 },
-      style: kind === 'chapter'
-        ? { width: 300, height: 280 }
-        : { width: 220, height: 140 },
-      data: kind === 'chapter'
-        ? {
-            title: (rec as any).title || (rec as any).name || 'Recovered Chapter',
-            name:  (rec as any).name || (rec as any).title,
-            summary: (rec as any).summary || '',
-            beats:   (rec as any).beats || '',
-            threads: (rec as any).threads || '',
-            worldBuilding: (rec as any).worldBuilding || '',
-            wordCount:     (rec as any).wordCount || '',
-            chapterNumber: (rec as any).chapterNumber || '',
-            noteColor:     (rec as any).noteColor || '#f59e0b',
-            appearances:   (rec as any).appearances || [],
-          }
-        : {
-            label:   (rec as NoteRecord).label || '',
-            content: (rec as NoteRecord).content || '',
-            noteColor: (rec as NoteRecord).noteColor || '#6d28d9',
-          },
+      style: kind === 'chapter' ? { width: 300, height: 280 }
+           : kind === 'event'   ? { width: 300, height: 280 }
+           : kind === 'note'    ? { width: 220, height: 140 }
+           : kind === 'place'   ? { width: 280, height: 220 }
+           : kind === 'concept' ? { width: 280, height: 220 }
+           : kind === 'item'    ? { width: 280, height: 220 }
+           : { width: 200, height: 160 },
+      data: {
+        ...rec,
+        // Ensure UI fields are present
+        ...(kind === 'chapter' ? { title: rec.title || rec.name || 'Recovered Chapter' } : {}),
+        ...(kind === 'note'    ? { label: rec.label || 'Recovered Note' } : {}),
+      }
     };
-    // Switch to Main canvas first (chapters & notes live there) then add
-    setCanvasMode('main');
+
+    setCanvasMode(targetMode);
     addNode(base);
     setSelectedNodeId(rec.id);
     onClose();
@@ -161,33 +206,28 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
 
     const id = `${kind}-${Date.now()}`;
     const now = Date.now();
+    let initialData: any = { id, createdAt: now, updatedAt: now };
+
     if (kind === 'chapter') {
-      upsertChapter(id, {
-        id,
-        name: 'New Chapter Note',
-        summary: '',
-        noteColor: '#f59e0b',
-        createdAt: now, updatedAt: now,
-      });
-    } else {
-      upsertNote(id, {
-        id,
-        label: 'New Note',
-        content: '',
-        noteColor: '#6d28d9',
-        createdAt: now, updatedAt: now,
-      });
+      initialData = { ...initialData, name: 'New Chapter Note', summary: '', noteColor: '#f59e0b', title: 'New Chapter Note' };
+    } else if (kind === 'note') {
+      initialData = { ...initialData, label: 'New Note', content: '', noteColor: '#6d28d9' };
+    } else if (kind === 'place') {
+      initialData = { ...initialData, name: 'New Place', description: '', color: '#0891b2' };
+    } else if (kind === 'event') {
+      initialData = { ...initialData, name: 'New Event', description: '', noteColor: '#6d28d9', title: 'New Event' };
+    } else if (kind === 'concept') {
+      initialData = { ...initialData, name: 'New Concept', description: '', color: '#d97706' };
+    } else if (kind === 'item') {
+      initialData = { ...initialData, name: 'New Item', description: '', color: '#e11d48' };
     }
-    // Drop it on the canvas too
-    const rec = kind === 'chapter'
-      ? { id, name: 'New Chapter Note', noteColor: '#f59e0b' } as ChapterRecord
-      : { id, label: 'New Note', noteColor: '#6d28d9', content: '' } as NoteRecord;
-    restoreToCanvas(rec);
+
+    upsertRecord(id, initialData);
+    restoreToCanvas(initialData);
   };
 
   const handleDelete = (id: string) => {
-    if (kind === 'chapter') deleteChapter(id);
-    else deleteNote(id);
+    deleteRecord(id);
     setConfirmDeleteId(null);
   };
 
@@ -254,10 +294,10 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Icon className="w-10 h-10 mb-3" style={{ color: meta.color, opacity: 0.4 }} />
                 <p className="text-sm font-semibold" style={{ color: 'var(--fg-2)' }}>
-                  {search ? 'No matches.' : `No ${kind === 'chapter' ? 'chapter notes' : 'notes'} yet.`}
+                  {search ? 'No matches.' : `No ${meta.title.toLowerCase()} yet.`}
                 </p>
                 <p className="text-xs mt-1" style={{ color: 'var(--fg-3)' }}>
-                  {search ? 'Try a different search term.' : 'Drop one on the canvas or click the button above to create one.'}
+                  {search ? 'Try a different search term.' : `Add a ${kind} to the canvas or click the button above to create one.`}
                 </p>
               </div>
             ) : (
@@ -367,7 +407,7 @@ export function LibraryModal({ isOpen, onClose, kind }: Props) {
 
           {/* Footer */}
           <div className="px-5 py-3 border-t flex items-center justify-between text-xs" style={{ borderColor: 'var(--border)', color: 'var(--fg-3)' }}>
-            <span>{list.length} {kind === 'chapter' ? 'chapter note' : 'note'}{list.length === 1 ? '' : 's'} in library</span>
+            <span className="capitalize">{list.length} {kind}{list.length === 1 ? '' : 's'} in library</span>
             <span className="italic">Deleting a canvas node does NOT remove it from this library.</span>
           </div>
         </motion.div>

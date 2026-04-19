@@ -3,7 +3,8 @@
 @theme {
   --color-background: oklch(0.12 0.02 280);
   --color-foreground: oklch(0.98 0.01 200);
-  --color-primary: oklch(0.45 0.15 285);
+  --color-primary: #4B0082;
+  --color-charcoal: #333333;
   --color-accent: oklch(0.7 0.15 45);
   --color-card: oklch(0.16 0.03 285);
   --color-card-foreground: oklch(0.95 0.01 200);
@@ -12,17 +13,17 @@
 
 /* ── Dark theme (default) ─────────────────────────── */
 :root {
-  --bg:          #0a0a0c;
-  --bg-2:        #18181b;
-  --bg-3:        #27272a;
+  --bg:          #0f0f11;
+  --bg-2:        #1c1c1e;
+  --bg-3:        #333333;
   --fg:          #fcfcfd;
   --fg-2:        #a1a1aa;
   --fg-3:        #71717a;
   --border:      rgba(255,255,255,0.06);
   --border-2:    rgba(255,255,255,0.12);
-  --card-bg:     rgba(24,24,27,0.85);
-  --glass:       rgba(24,24,27,0.7);
-  --primary:     #6d28d9;
+  --card-bg:     rgba(28,28,30,0.85);
+  --glass:       rgba(28,28,30,0.7);
+  --primary:     #4B0082;
   --accent:      #d4af37;
   --canvas-dot:  rgba(255,255,255,0.05);
   --node-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);

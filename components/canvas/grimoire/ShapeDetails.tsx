@@ -60,7 +60,7 @@ export function ShapeDetails({ nodeId, data, updateNodeData }: ShapeDetailsProps
 
       <div className="space-y-1.5">
         <label className={labelCls}>Identifier</label>
-        <input type="text" {...labelField} placeholder="Name this shape..." className={inputCls} />
+        <input type="text" {...labelField.props} placeholder="Name this shape..." className={inputCls} />
       </div>
     </>
   );

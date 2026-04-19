@@ -152,40 +152,43 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     set({ selectedNodeId: id });
   },
 
-  updateNodeData: (id, updates) => {
-    // 1. Write-through to the world library (library sync)
-    // This ensuring that changes (including images) are saved even if the node is "isolated"
-    // or on a canvas that isn't currently active.
-    const [type] = id.split('-');
-    const ws = useWorldStore.getState();
-    
-    switch (type) {
-      case 'character': {
-        const node = get().nodes.find(n => n.id === id) || get().mainNodes.find(n => n.id === id);
-        const charId = node?.data?.characterId || id;
-        ws.updateCharacter(charId, updates); 
-        break;
+  updateNodeData: (id, data) => {
+    const mode = get().canvasMode;
+    const updatedNodes = get().nodes.map((node) => {
+      if (node.id === id) {
+        const updatedNode = { ...node, data: { ...node.data, ...data } };
+
+        // Write-through to the world library so chapters / notes / characters
+        // survive even if the node is later deleted or the canvas goes blank.
+        if (node.type === 'character' && node.data.characterId) {
+          useWorldStore.getState().updateCharacter(node.data.characterId, data);
+        }
+        if (node.type === 'chapter') {
+          useWorldStore.getState().upsertChapter(id, updatedNode.data);
+        }
+        if (node.type === 'note') {
+          useWorldStore.getState().upsertNote(id, updatedNode.data);
+        }
+        if (node.type === 'place') {
+          useWorldStore.getState().upsertPlace(id, updatedNode.data);
+        }
+        if (node.type === 'event') {
+          useWorldStore.getState().upsertEvent(id, updatedNode.data);
+        }
+        if (node.type === 'concept') {
+          useWorldStore.getState().upsertConcept(id, updatedNode.data);
+        }
+        if (node.type === 'item') {
+          useWorldStore.getState().upsertItem(id, updatedNode.data);
+        }
+
+        return updatedNode;
       }
-      case 'place':   ws.upsertPlace(id, updates);   break;
-      case 'event':   ws.upsertEvent(id, updates);   break;
-      case 'concept': ws.upsertConcept(id, updates); break;
-      case 'item':    ws.upsertItem(id, updates);    break;
-      case 'chapter': ws.upsertChapter(id, updates); break;
-      case 'note':    ws.upsertNote(id, updates);    break;
-    }
-
-    // 2. Update all node lists to ensure total consistency across Main and Lore canvases
-    const updateFn = (arr: Node[]) => arr.map((node) => 
-      node.id === id ? { ...node, data: { ...node.data, ...updates } } : node
-    );
-
-    set((state) => {
-      const newNodes = updateFn(state.nodes);
-      return {
-        nodes: newNodes,
-        mainNodes: updateFn(state.mainNodes),
-        loreNodes: updateFn(state.loreNodes),
-      };
+      return node;
+    });
+    set({
+      nodes: updatedNodes,
+      ...(mode === 'main' ? { mainNodes: updatedNodes } : { loreNodes: updatedNodes })
     });
   },
 
@@ -194,6 +197,19 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const sanitized = node.type === 'character'
       ? { ...node, style: { ...node.style } }
       : node;
+    
+    // Write-through to library immediately upon creation
+    const { id, type, data } = sanitized;
+    const ws = useWorldStore.getState();
+    
+    if (type === 'character') ws.updateCharacter(id, data);
+    else if (type === 'chapter') ws.upsertChapter(id, data);
+    else if (type === 'note')    ws.upsertNote(id, data);
+    else if (type === 'place')   ws.upsertPlace(id, data);
+    else if (type === 'event')   ws.upsertEvent(id, data);
+    else if (type === 'concept') ws.upsertConcept(id, data);
+    else if (type === 'item')    ws.upsertItem(id, data);
+
     const newNodes = [...get().nodes, sanitized];
     set({
       nodes: newNodes,
@@ -233,12 +249,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     const state = get();
     const node = [...state.mainNodes, ...state.loreNodes].find(n => n.id === id);
 
-    // Characters still get removed from the library when the node is deleted
-    // (existing behaviour). Chapter notes and notes are intentionally KEPT in
-    // the library so they can be recovered via the library button menus.
-    if (node?.type === 'character' && node.data?.characterId) {
-      useWorldStore.getState().deleteCharacter(node.data.characterId);
-    }
+    // We no longer remove characters from the library when the node is deleted.
+    // This allows records to be preserved in the Vault even if the canvas is cleared.
+    // Chapter notes and generic notes are already preserved by existing logic.
 
     const filterNodes = (arr: Node[]) => arr.filter(n => n.id !== id);
     const filterEdges = (arr: Edge[]) => arr.filter(e => e.source !== id && e.target !== id);

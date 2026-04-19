@@ -4,7 +4,7 @@ import React from 'react';
 import { Palette } from 'lucide-react';
 import { 
   labelCls, inputCls, textareaCls, 
-  ColorPicker, FontSizeControl, useField, ReferencedInSection 
+  ColorPicker, FontSizeControl, useField, ReferencedInSection, WordCounter 
 } from './GrimoireShared';
 
 interface ItemDetailsProps {
@@ -33,12 +33,14 @@ export function ItemDetails({ nodeId, data, updateNodeData }: ItemDetailsProps) 
 
       <div className="space-y-1.5">
         <label className={labelCls}>Item Name</label>
-        <input type="text" {...nameField} placeholder="Artifact, gear, object..." className={inputCls} />
+        <input type="text" {...nameField.props} placeholder="Artifact, gear, object..." className={inputCls} />
+        <WordCounter count={nameField.meta.wordCount} limit={200} />
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}>Attributes & History</label>
-        <textarea {...attrField} rows={8} className={textareaCls} placeholder="Weight, materials, legend..." />
+        <textarea {...attrField.props} rows={8} className={textareaCls} placeholder="Weight, materials, legend..." />
+        <WordCounter count={attrField.meta.wordCount} limit={200} />
       </div>
 
       <div className="w-full h-px" style={{ background: 'var(--border)' }} />

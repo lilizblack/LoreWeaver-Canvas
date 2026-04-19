@@ -4,7 +4,7 @@ import React from 'react';
 import { Palette } from 'lucide-react';
 import { 
   labelCls, inputCls, textareaCls, 
-  ColorPicker, FontSizeControl, useField, ReferencedInSection 
+  ColorPicker, FontSizeControl, useField, ReferencedInSection, WordCounter 
 } from './GrimoireShared';
 
 interface NoteDetailsProps {
@@ -33,12 +33,24 @@ export function NoteDetails({ nodeId, data, updateNodeData }: NoteDetailsProps) 
 
       <div className="space-y-1.5">
         <label className={labelCls}>Note Title</label>
-        <input type="text" {...titleField} placeholder="Brief subject..." className={inputCls} />
+        <input 
+          type="text" 
+          {...titleField.props} 
+          placeholder="Brief subject..." 
+          className={inputCls} 
+        />
+        <WordCounter count={titleField.meta.wordCount} limit={200} />
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}>Note Content</label>
-        <textarea {...contentField} rows={8} className={textareaCls} placeholder="Write anything..." />
+        <textarea 
+          {...contentField.props} 
+          rows={8} 
+          className={textareaCls} 
+          placeholder="Write anything..." 
+        />
+        <WordCounter count={contentField.meta.wordCount} limit={200} />
       </div>
 
       <div className="w-full h-px" style={{ background: 'var(--border)' }} />

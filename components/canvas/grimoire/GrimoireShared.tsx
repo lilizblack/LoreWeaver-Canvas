@@ -80,6 +80,16 @@ export function ImagePositionControl({ value, onChange }: { value: string; onCha
   );
 }
 
+export function WordCounter({ count, limit }: { count: number; limit?: number }) {
+  if (!limit) return null;
+  const isOver = count >= limit;
+  return (
+    <div className={`text-[9px] font-bold uppercase tracking-tighter text-right mt-1 ${isOver ? 'text-rose-500' : 'text-[var(--fg-3)]'}`}>
+      {count}<span className="opacity-40 mx-0.5">/</span>{limit} words
+    </div>
+  );
+}
+
 /**
  * Helper to get consistent colors for node types
  */
@@ -284,29 +294,20 @@ export function useField(
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     let val = e.target.value;
     
-    // Enforce Character Limit (only if maxWords is not set or specifically requested)
     if (options?.maxLength && !options?.maxWords && val.length > options.maxLength) {
       val = val.substring(0, options.maxLength);
     }
     
-    // Enforce Word Limit
     if (options?.maxWords) {
       const words = val.trim().split(/\s+/);
       const currentWordCount = val.trim() ? words.length : 0;
       
-      // We block adding new words if at limit, but allow deleting or editing existing words
       if (currentWordCount > options.maxWords) {
-        // If we just added a space or character that pushed us over, revert
         const prevWords = draft.trim().split(/\s+/);
         const prevCount = draft.trim() ? prevWords.length : 0;
         
         if (currentWordCount > prevCount) {
-          // Revert to prev draft to block the new word
           val = draft;
-        } else {
-          // They are editing existing text that was already over or at limit
-          // We'll allow it as long as the word count doesn't increase further
-          // This allows them to "fix" long text if they paste it in.
         }
       }
     }
@@ -314,14 +315,21 @@ export function useField(
     setDraft(val);
   };
 
+  const wordCount = draft.trim() ? draft.trim().split(/\s+/).length : 0;
+  const isFull = (options?.maxWords && wordCount >= options.maxWords) || 
+                 (options?.maxLength && draft.length >= options.maxLength) || false;
+
   return { 
-    value: draft, 
-    onChange: handleChange, 
-    onBlur: flush,
-    isFull: (options?.maxWords && (draft.trim() ? draft.trim().split(/\s+/).length : 0) >= options.maxWords) || 
-            (options?.maxLength && draft.length >= options.maxLength) || false,
-    wordCount: draft.trim() ? draft.trim().split(/\s+/).length : 0,
-    maxLength: options?.maxLength,
-    maxWords: options?.maxWords
+    props: {
+      value: draft, 
+      onChange: handleChange, 
+      onBlur: flush,
+      maxLength: options?.maxLength,
+    },
+    meta: {
+      isFull,
+      wordCount,
+      maxWords: options?.maxWords
+    }
   };
 }

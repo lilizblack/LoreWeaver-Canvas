@@ -4,7 +4,7 @@ import React from 'react';
 import { Palette, Upload } from 'lucide-react';
 import { 
   labelCls, inputCls, textareaCls, 
-  ColorPicker, FontSizeControl, ImagePositionControl, useField, ReferencedInSection 
+  ColorPicker, FontSizeControl, ImagePositionControl, useField, ReferencedInSection, WordCounter 
 } from './GrimoireShared';
 
 interface PlaceDetailsProps {
@@ -16,15 +16,8 @@ interface PlaceDetailsProps {
 }
 
 export function PlaceDetails({ nodeId, data, updateNodeData, isUploading, onImageUpload }: PlaceDetailsProps) {
-  const [imgError, setImgError] = React.useState(false);
-
-  // Reset image error state when imageUrl changes
-  React.useEffect(() => {
-    setImgError(false);
-  }, [data.imageUrl]);
-
-  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 300 });
-  const descField = useField(nodeId, data.description, 'description', updateNodeData, { maxWords: 300 });
+  const nameField = useField(nodeId, data.name, 'name', updateNodeData, { maxWords: 200 });
+  const descField = useField(nodeId, data.description, 'description', updateNodeData, { maxWords: 200 });
 
   const handleSelect = (key: string, value: any) => {
     updateNodeData(nodeId, { [key]: value });
@@ -35,19 +28,14 @@ export function PlaceDetails({ nodeId, data, updateNodeData, isUploading, onImag
       <div className="space-y-2">
         <label className={labelCls}>Location Snapshot</label>
         <div className="relative group aspect-video rounded-xl border overflow-hidden flex flex-col items-center justify-center border-dashed" style={{ background: 'var(--bg-3)', borderColor: 'var(--border)' }}>
-          {data.imageUrl && !imgError
-            ? <img 
-                src={data.imageUrl} 
-                className="w-full h-full" 
-                alt="place"
-                onError={() => setImgError(true)}
-                style={{
-                  objectFit: data.imagePosition === 'fill' ? 'fill' : data.imagePosition === 'contain' ? 'contain' : 'cover',
-                  objectPosition: ['contain', 'fill'].includes(data.imagePosition) ? 'center' : (data.imagePosition || 'center')
-                }} />
+          {data.imageUrl
+            ? <img src={data.imageUrl} className="w-full h-full" alt="place" style={{
+                objectFit: data.imagePosition === 'fill' ? 'fill' : data.imagePosition === 'contain' ? 'contain' : 'cover',
+                objectPosition: ['contain', 'fill'].includes(data.imagePosition) ? 'center' : (data.imagePosition || 'center')
+              }} />
             : <div className="text-center p-4">
                 <Upload className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--fg-3)' }} />
-                <p className="text-[10px]" style={{ color: 'var(--fg-3)' }}>{imgError ? 'Failed to load image' : 'Upload Place Image'}</p>
+                <p className="text-[10px]" style={{ color: 'var(--fg-3)' }}>Upload Place Image</p>
               </div>
           }
           <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={onImageUpload} disabled={isUploading} />
@@ -79,12 +67,14 @@ export function PlaceDetails({ nodeId, data, updateNodeData, isUploading, onImag
 
       <div className="space-y-1.5">
         <label className={labelCls}>Location Name</label>
-        <input type="text" {...nameField} placeholder="Name of place..." className={inputCls} />
+        <input type="text" {...nameField.props} placeholder="Name of place..." className={inputCls} />
+        <WordCounter count={nameField.meta.wordCount} limit={200} />
       </div>
 
       <div className="space-y-1.5">
         <label className={labelCls}>Description</label>
-        <textarea {...descField} rows={6} className={textareaCls} placeholder="Describe this location..." />
+        <textarea {...descField.props} rows={6} className={textareaCls} placeholder="Describe this location..." />
+        <WordCounter count={descField.meta.wordCount} limit={200} />
       </div>
 
       <div className="w-full h-px" style={{ background: 'var(--border)' }} />

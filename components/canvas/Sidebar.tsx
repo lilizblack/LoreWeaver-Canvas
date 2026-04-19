@@ -8,8 +8,7 @@ import {
   User, BookOpen, StickyNote, Image, Plus,
   Sun, Moon, Circle, Square, Star, ArrowRight,
   Triangle, ChevronDown, ChevronUp, Hexagon,
-  AArrowUp, AArrowDown, Type, Scroll, Gem, FileText,
-  MapPin, Calendar
+  AArrowUp, AArrowDown, Type, Scroll, Gem, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Node } from 'reactflow';
@@ -91,8 +90,8 @@ export function Sidebar({ projectName }: { projectName: string }) {
           ['image', 'media', 'lore', 'shape', 'chapter', 'note'].includes(n.type || '')
         ).length;
         
-        if (libraryLoreCount + nodeLoreCount >= 100) {
-          alert(`The Chronicler's Vault is full (100/100 Lore Elements). Ascend to Pro to expand your world's archive.`);
+        if (libraryLoreCount + nodeLoreCount >= 200) {
+          alert(`The Chronicler's Vault is full (200/200 Lore Elements). Ascend to Pro to expand your world's archive.`);
           setSettingsOpen(true, 'billing');
           e.preventDefault();
           return;
@@ -124,8 +123,8 @@ export function Sidebar({ projectName }: { projectName: string }) {
         ['image', 'media', 'lore', 'shape', 'chapter', 'note'].includes(n.type || '')
       ).length;
       
-      if (libraryLoreCount + nodeLoreCount >= 100) {
-        alert(`The Chronicler's Vault is full (100/100 Lore Elements). Ascend to Pro to expand your world's archive.`);
+      if (libraryLoreCount + nodeLoreCount >= 200) {
+        alert(`The Chronicler's Vault is full (200/200 Lore Elements). Ascend to Pro to expand your world's archive.`);
         setSettingsOpen(true, 'billing');
         return;
       }
@@ -151,10 +150,10 @@ export function Sidebar({ projectName }: { projectName: string }) {
   ];
 
   const loreTemplates = [
-    { type: 'place',     label: 'Place',           icon: MapPin,    color: isDark ? '#2dd4bf' : '#0891b2', bg: isDark ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.15)' },
-    { type: 'event',     label: 'Timeline Event',  icon: Calendar,  color: isDark ? '#f472b6' : '#db2777', bg: isDark ? 'rgba(219,39,119,0.12)' : 'rgba(219,39,119,0.15)' },
+    { type: 'place',     label: 'Place',           icon: User,      color: isDark ? '#2dd4bf' : '#0891b2', bg: isDark ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.15)' },
+    { type: 'event',     label: 'Timeline Event',  icon: BookOpen,  color: isDark ? '#f472b6' : '#db2777', bg: isDark ? 'rgba(219,39,119,0.12)' : 'rgba(219,39,119,0.15)' },
     { type: 'concept',   label: 'Concept / Term',  icon: Scroll,    color: isDark ? '#fbbf24' : '#d97706', bg: isDark ? 'rgba(217,119,6,0.12)'  : 'rgba(217,119,6,0.15)'  },
-    { type: 'item',      label: 'Item / Artifact', icon: Gem,       color: isDark ? '#fb7185' : '#e11d48', bg: isDark ? 'rgba(225,29,72,0.12)'  : 'rgba(225,29,72,0.15)'  },
+    { type: 'item',      label: 'Item / Artifact',  icon: Gem,       color: isDark ? '#fb7185' : '#e11d48', bg: isDark ? 'rgba(225,29,72,0.12)'  : 'rgba(225,29,72,0.15)'  },
     { type: 'note',      label: 'Notes',           icon: StickyNote,color: isDark ? '#34d399' : '#059669', bg: isDark ? 'rgba(5,150,105,0.12)' : 'rgba(5,150,105,0.15)'  },
     { type: 'image',     label: 'Images',          icon: Image,     color: isDark ? '#60a5fa' : '#2563eb', bg: isDark ? 'rgba(37,99,235,0.12)' : 'rgba(37,99,235,0.15)'  },
   ];
