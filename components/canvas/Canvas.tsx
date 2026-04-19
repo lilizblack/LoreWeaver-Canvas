@@ -110,14 +110,19 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
   const concepts = useWorldStore((state) => state.concepts);
   const items = useWorldStore((state) => state.items);
 
-  const charCount = Object.keys(characters).length;
-  const chapterCount = Object.keys(chapters).length;
-  const noteCount = Object.keys(worldNotes).length;
+  const charCount = useMemo(() => Object.keys(characters).length, [characters]);
+  const chapterCount = useMemo(() => Object.keys(chapters).length, [chapters]);
+  const noteCount = useMemo(() => Object.keys(worldNotes).length, [worldNotes]);
+  const placeCount = useMemo(() => Object.keys(places).length, [places]);
+  const eventCount = useMemo(() => Object.keys(events).length, [events]);
+  const conceptCount = useMemo(() => Object.keys(concepts).length, [concepts]);
+  const itemCount = useMemo(() => Object.keys(items).length, [items]);
   
   // Total count for current mode library
-  const currentModeLibCount = canvasMode === 'main' 
+  const currentModeLibCount = useMemo(() => canvasMode === 'main' 
     ? charCount + chapterCount + noteCount
-    : Object.keys(places).length + Object.keys(events).length + Object.keys(concepts).length + Object.keys(items).length + noteCount;
+    : placeCount + eventCount + conceptCount + itemCount + noteCount
+  , [canvasMode, charCount, chapterCount, noteCount, placeCount, eventCount, conceptCount, itemCount]);
 
   // Initialize Sync & Threads
   const { syncToFirestore, syncStatus, exportBackup, importBackup } = useLoreSync(projectId);
@@ -154,10 +159,7 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
 
       // ── Spark Plan Limits Enforcement ──────────────────────────────────────
       if (tier === 'spark') {
-        const limits = { chars: 30, lore: 100 };
-        
-        // Count characters
-        const charCount = Object.keys(useWorldStore.getState().characters).length;
+        const limits = { chars: 50, lore: 200 };
         
         // Count lore items (all categories + canvas elements)
         const ws = useWorldStore.getState();
@@ -176,8 +178,8 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
         ).length;
         const totalLore = libraryLoreCount + nodeLoreCount;
 
-        if (type === 'character' && charCount >= 50) {
-          alert(`The Soul Weaver is at capacity (50/50 Characters). Ascend to Pro to craft more lives.`);
+        if (type === 'character' && charCount >= limits.chars) {
+          alert(`The Soul Weaver is at capacity (${limits.chars}/${limits.chars} Characters). Ascend to Pro to craft more lives.`);
           setSettingsOpen(true, 'billing');
           return;
         }
@@ -189,7 +191,7 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
         ].includes(type);
 
         if (isLoreType && totalLore >= limits.lore) {
-          alert(`The Chronicler's Vault is full (100/100 Lore Elements). Ascend to Pro to expand your world's archive.`);
+          alert(`The Chronicler's Vault is full (${limits.lore}/${limits.lore} Lore Elements). Ascend to Pro to expand your world's archive.`);
           setSettingsOpen(true);
           return;
         }
@@ -440,7 +442,7 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
                       <MapPin className="w-4 h-4 text-blue-400" />
                       <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Places</span>
                     </div>
-                    <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-lg border border-blue-500/10">{Object.keys(places).length}</span>
+                    <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-lg border border-blue-500/10">{placeCount}</span>
                   </button>
 
                   <button 
@@ -451,7 +453,7 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
                       <Calendar className="w-4 h-4 text-violet-400" />
                       <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Events</span>
                     </div>
-                    <span className="text-[10px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg border border-violet-500/10">{Object.keys(events).length}</span>
+                    <span className="text-[10px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg border border-violet-500/10">{eventCount}</span>
                   </button>
 
                   <button 
@@ -462,7 +464,7 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
                       <Scroll className="w-4 h-4 text-orange-400" />
                       <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Concepts</span>
                     </div>
-                    <span className="text-[10px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-lg border border-orange-500/10">{Object.keys(concepts).length}</span>
+                    <span className="text-[10px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-lg border border-orange-500/10">{conceptCount}</span>
                   </button>
 
                   <button 
@@ -473,7 +475,7 @@ function CanvasInner({ projectId, projectName }: { projectId: string, projectNam
                       <Gem className="w-4 h-4 text-rose-400" />
                       <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">Items</span>
                     </div>
-                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-lg border border-rose-500/10">{Object.keys(items).length}</span>
+                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-lg border border-rose-500/10">{itemCount}</span>
                   </button>
                 </div>
               </div>
